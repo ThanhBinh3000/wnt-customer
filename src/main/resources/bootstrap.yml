@@ -1,0 +1,12 @@
+# Spring
+spring:
+  application:
+    name: wnt-customer
+  profiles:
+    active: prod
+  cloud:
+    config:
+      uri: http://10.0.13.41:30004
+      label: latest
+      username: ENCL(Bq7G/JTejfXoJCk8nDp6iw==)
+      password: ENCL(r8wZZemi/0rdGJOBDoPlFw==)
