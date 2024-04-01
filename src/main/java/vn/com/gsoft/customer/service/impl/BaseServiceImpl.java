@@ -6,12 +6,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+import vn.com.gsoft.customer.config.MessageTemplate;
 import vn.com.gsoft.customer.entity.BaseEntity;
 import vn.com.gsoft.customer.model.system.BaseRequest;
 import vn.com.gsoft.customer.model.system.Profile;
 import vn.com.gsoft.customer.repository.BaseRepository;
 import vn.com.gsoft.customer.service.BaseService;
-
 
 import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
