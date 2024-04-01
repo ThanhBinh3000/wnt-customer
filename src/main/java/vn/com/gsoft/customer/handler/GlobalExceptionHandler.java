@@ -1,9 +1,6 @@
 package vn.com.gsoft.customer.handler;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +12,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import vn.com.gsoft.customer.exception.EntityValidationException;
 import vn.com.gsoft.customer.exception.PartialUpdateException;
 import vn.com.gsoft.customer.exception.QueryValidationException;
@@ -29,66 +27,67 @@ import java.util.Map;
 @Slf4j
 public class GlobalExceptionHandler {
 
-    @Autowired
-    private MessageSource messageSource;
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<?> resourceNotFoundException(ResourceNotFoundException ex, WebRequest request) {
-        ErrorDetail errorDetail = new ErrorDetail(new Date(), ex.getMessage(), "", request.getDescription(false));
-        return new ResponseEntity<>(errorDetail, HttpStatus.NOT_FOUND);
+        ErrorDetail errorDetail = new ErrorDetail(new Date(), ex.getMessage(), "", request.getDescription(false), HttpStatus.NOT_FOUND.value());
+        return new ResponseEntity<>(errorDetail, HttpStatus.OK);
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<?> noResourceFoundException(NoResourceFoundException ex, WebRequest request) {
+        ErrorDetail errorDetail = new ErrorDetail(new Date(), ex.getMessage(), "", request.getDescription(false), HttpStatus.NOT_FOUND.value());
+        return new ResponseEntity<>(errorDetail, HttpStatus.OK);
     }
 
     @ExceptionHandler(EntityValidationException.class)
     public ResponseEntity<?> entityValidationException(EntityValidationException ex, WebRequest request) {
-        ErrorDetail errorDetail = new ErrorDetail(new Date(), ex.getMessage(), ex.getDetails(), request.getDescription(false));
-        return new ResponseEntity<>(errorDetail, HttpStatus.BAD_REQUEST);
+        ErrorDetail errorDetail = new ErrorDetail(new Date(), ex.getMessage(), ex.getDetails(), request.getDescription(false), HttpStatus.BAD_REQUEST.value());
+        return new ResponseEntity<>(errorDetail, HttpStatus.OK);
     }
 
     @ExceptionHandler(QueryValidationException.class)
     public ResponseEntity<?> queryValidationException(QueryValidationException ex, WebRequest request) {
-        ErrorDetail errorDetail = new ErrorDetail(new Date(), ex.getMessage(), "", request.getDescription(false));
-        return new ResponseEntity<>(errorDetail, HttpStatus.BAD_REQUEST);
+        ErrorDetail errorDetail = new ErrorDetail(new Date(), ex.getMessage(), "", request.getDescription(false), HttpStatus.BAD_REQUEST.value());
+        return new ResponseEntity<>(errorDetail, HttpStatus.OK);
     }
 
     @ExceptionHandler(PartialUpdateException.class)
     public ResponseEntity<?> partialUpdateException(PartialUpdateException ex, WebRequest request) {
-        ErrorDetail errorDetail = new ErrorDetail(new Date(), ex.getMessage(), "", request.getDescription(false));
-        return new ResponseEntity<>(errorDetail, HttpStatus.BAD_REQUEST);
+        ErrorDetail errorDetail = new ErrorDetail(new Date(), ex.getMessage(), "", request.getDescription(false), HttpStatus.BAD_REQUEST.value());
+        return new ResponseEntity<>(errorDetail, HttpStatus.OK);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<?> illegalArgumentException(IllegalArgumentException ex, WebRequest request) {
-        ErrorDetail errorDetail = new ErrorDetail(new Date(), ex.getMessage(), "", request.getDescription(false));
-        return new ResponseEntity<>(errorDetail, HttpStatus.BAD_REQUEST);
+        ErrorDetail errorDetail = new ErrorDetail(new Date(), ex.getMessage(), "", request.getDescription(false), HttpStatus.BAD_REQUEST.value());
+        return new ResponseEntity<>(errorDetail, HttpStatus.OK);
     }
 
     @ExceptionHandler(OptimisticLockingFailureException.class)
     public ResponseEntity<?> optimisticLockingException(OptimisticLockingFailureException ex, WebRequest request) {
         ErrorDetail errorDetail = new ErrorDetail(new Date(),
-                messageSource.getMessage(
-                        "error.optimistic-locking",
-                        new Object[0],
-                        LocaleContextHolder.getLocale()),
+                ex.getMessage(),
                 "",
-                request.getDescription(false));
-        return new ResponseEntity<>(errorDetail, HttpStatus.CONFLICT);
+                request.getDescription(false), HttpStatus.CONFLICT.value());
+        return new ResponseEntity<>(errorDetail, HttpStatus.OK);
     }
 
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<?> authenticationException(AuthenticationException ex, WebRequest request) {
-        ErrorDetail errorDetail = new ErrorDetail(new Date(), ex.getMessage(), "", request.getDescription(false));
-        return new ResponseEntity<>(errorDetail, HttpStatus.UNAUTHORIZED);
+        ErrorDetail errorDetail = new ErrorDetail(new Date(), ex.getMessage(), "", request.getDescription(false), HttpStatus.UNAUTHORIZED.value());
+        return new ResponseEntity<>(errorDetail, HttpStatus.OK);
     }
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<?> accessDeniedException(AccessDeniedException ex, WebRequest request) {
-        ErrorDetail errorDetail = new ErrorDetail(new Date(), ex.getMessage(), "", request.getDescription(false));
-        return new ResponseEntity<>(errorDetail, HttpStatus.FORBIDDEN);
+        ErrorDetail errorDetail = new ErrorDetail(new Date(), ex.getMessage(), "", request.getDescription(false), HttpStatus.FORBIDDEN.value());
+        return new ResponseEntity<>(errorDetail, HttpStatus.OK);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<?> handleValidationExceptions(MethodArgumentNotValidException ex, WebRequest request) {
-        ErrorDetail errorDetail = new ErrorDetail(new Date(), ex.getMessage(), "", request.getDescription(false));
+        ErrorDetail errorDetail = new ErrorDetail(new Date(), ex.getMessage(), "", request.getDescription(false), HttpStatus.BAD_REQUEST.value());
         Map<String, String> errors = new HashMap<>();
 
         ex.getBindingResult().getAllErrors().forEach((error) -> {
@@ -98,20 +97,17 @@ public class GlobalExceptionHandler {
         });
 
         if (!CollectionUtils.isEmpty(errors)) {
-            errorDetail.setMessage(messageSource.getMessage(
-                    "error.validation",
-                    new Object[0],
-                    LocaleContextHolder.getLocale()));
+            errorDetail.setMessage(ex.getMessage());
             errorDetail.setDetails(errors);
         }
 
-        return new ResponseEntity<>(errorDetail, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(errorDetail, HttpStatus.OK);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> globalExceptionHandler(Exception ex, WebRequest request) {
         log.error("globalExceptionHandler", ex);
-        ErrorDetail errorDetail = new ErrorDetail(new Date(), ex.getMessage(), "", request.getDescription(false));
-        return new ResponseEntity<>(errorDetail, HttpStatus.INTERNAL_SERVER_ERROR);
+        ErrorDetail errorDetail = new ErrorDetail(new Date(), ex.getMessage(), "", request.getDescription(false), HttpStatus.INTERNAL_SERVER_ERROR.value());
+        return new ResponseEntity<>(errorDetail, HttpStatus.OK);
     }
 }

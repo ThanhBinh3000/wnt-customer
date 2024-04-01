@@ -23,18 +23,18 @@
     </appender>
 
     <!-- Sử dụng biến môi trường hoặc thuộc tính Spring để cấu hình đích đến Logstash -->
-    <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
-        <destination>${logstashHost}:${logstashPort}</destination>
-        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
-            <customFields>{"applicationName":"${applicationName}"}</customFields>
-        </encoder>
-        <reconnectionDelay>10000</reconnectionDelay>
-    </appender>
+<!--    <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">-->
+<!--        <destination>${logstashHost}:${logstashPort}</destination>-->
+<!--        <encoder class="net.logstash.logback.encoder.LogstashEncoder">-->
+<!--            <customFields>{"applicationName":"${applicationName}"}</customFields>-->
+<!--        </encoder>-->
+<!--        <reconnectionDelay>10000</reconnectionDelay>-->
+<!--    </appender>-->
 
     <!-- Thêm các Appender vào Root Logger -->
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="STASH"/>
-        <appender-ref ref="LOGSTASH"/>
+<!--        <appender-ref ref="LOGSTASH"/>-->
     </root>
 </configuration>

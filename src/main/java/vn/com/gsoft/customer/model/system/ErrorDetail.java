@@ -15,4 +15,5 @@ public class ErrorDetail {
     private Object details;
 
     private String path;
+    private int status;
 }

@@ -1,45 +1,53 @@
 package vn.com.gsoft.customer.model.system;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.User;
-import vn.com.gsoft.customer.entity.Department;
-import vn.com.gsoft.customer.entity.Role;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Collection;
+import java.io.Serializable;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
-public class Profile extends User {
+@NoArgsConstructor
+public class Profile implements UserDetails, Serializable {
+    private static final long serialVersionUID = 620L;
+    private static final Log logger = LogFactory.getLog(Profile.class);
+    private String password;
+    private String username;
+    private Set<CodeGrantedAuthority> authorities;
+    private boolean accountNonExpired;
+    private boolean accountNonLocked;
+    private boolean credentialsNonExpired;
+    private boolean enabled;
     private Long id;
 
     private String fullName;
 
-    private Long entityTypeId;
 
-    private Department department;
+    private NhaThuocs nhaThuoc;
 
     private List<Role> roles;
 
-    private List<Department> departments;
+    private List<NhaThuocs> nhaThuocs;
 
-    public Profile(String username, String password, Collection<? extends GrantedAuthority> authorities) {
-        super(username, password, authorities);
-    }
 
-    public Profile(String username, String password, boolean enabled, boolean accountNonExpired, boolean credentialsNonExpired, boolean accountNonLocked, Collection<? extends GrantedAuthority> authorities) {
-        super(username, password, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked, authorities);
-    }
-
-    public Profile(Long id, String fullName, Long entityTypeId, Department department, List<Role> roles, List<Department> departments, String username, String password, boolean enabled, boolean accountNonExpired, boolean credentialsNonExpired, boolean accountNonLocked, Collection<? extends GrantedAuthority> authorities) {
-        super(username, password, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked, authorities);
+    public Profile(Long id, String fullName, NhaThuocs nhaThuoc, List<Role> roles, List<NhaThuocs> nhaThuocs, String username, String password, boolean enabled, boolean accountNonExpired, boolean credentialsNonExpired, boolean accountNonLocked, Set<CodeGrantedAuthority> authorities) {
         this.id = id;
         this.fullName = fullName;
-        this.entityTypeId = entityTypeId;
-        this.department = department;
+        this.nhaThuoc = nhaThuoc;
         this.roles = roles;
-        this.departments = departments;
+        this.nhaThuocs = nhaThuocs;
+        this.username = username;
+        this.password = password;
+        this.enabled = enabled;
+        this.accountNonExpired = accountNonExpired;
+        this.credentialsNonExpired = credentialsNonExpired;
+        this.accountNonLocked = accountNonLocked;
+        this.authorities = authorities;
     }
 }
