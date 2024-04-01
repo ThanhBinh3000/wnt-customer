@@ -1,5 +1,6 @@
 package vn.com.gsoft.customer.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;
 import lombok.AllArgsConstructor;
@@ -12,6 +13,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @Data
 @NoArgsConstructor
@@ -20,11 +22,21 @@ import java.time.LocalDateTime;
 @EntityListeners(AuditingEntityListener.class)
 public class BaseEntity {
     @CreatedDate
-    private LocalDateTime createAt;
+    @Column(name="Created")
+    private Date created;
+
     @CreatedBy
-    private Long createById;
+    @Column(name="CreatedBy_UserId")
+    private Long createdByUserId;
+
     @LastModifiedDate
-    private LocalDateTime updateAt;
+    @Column(name="Modified")
+    private Date modified;
+
     @LastModifiedBy
-    private Long updateById;
+    @Column(name="ModifiedBy_UserId")
+    private Long modifiedByUserId;
+
+    @Column(name="RecordStatusId")
+    private Long recordStatusId;
 }
