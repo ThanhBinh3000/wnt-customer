@@ -34,7 +34,6 @@ public class KhachHangsReq extends BaseRequest {
     private Integer modifiedByUserId;
     private Boolean active;
     private Integer customerTypeId;
-    private Integer recordStatusID;
     private String barCode;
     private Date birthDate;
     private String code;

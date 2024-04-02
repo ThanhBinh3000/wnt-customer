@@ -1,9 +1,6 @@
 package vn.com.gsoft.customer.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,6 +20,7 @@ public class KhachHangs extends BaseEntity {
 
     @Id
     @Column(name = "id")
+    @GeneratedValue(strategy=GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "MaKhachHang")
@@ -45,20 +43,10 @@ public class KhachHangs extends BaseEntity {
     private String maNhaThuoc;
     @Column(name = "MaNhomKhachHang")
     private Integer maNhomKhachHang;
-    @Column(name = "Created")
-    private Date created;
-    @Column(name = "Modified")
-    private Date modified;
-    @Column(name = "CreatedBy_UserId")
-    private Integer createdByUserId;
-    @Column(name = "ModifiedBy_UserId")
-    private Integer modifiedByUserId;
     @Column(name = "Active")
     private Boolean active;
     @Column(name = "CustomerTypeId")
     private Integer customerTypeId;
-    @Column(name = "RecordStatusID")
-    private Integer recordStatusID;
     @Column(name = "BarCode")
     private String barCode;
     @Column(name = "BirthDate")
