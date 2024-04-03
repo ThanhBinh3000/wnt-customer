@@ -10,7 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.com.gsoft.customer.constant.PathContains;
 import vn.com.gsoft.customer.model.dto.KhachHangsReq;
-import vn.com.gsoft.customer.response.BaseResponse;
+import vn.com.gsoft.customer.model.system.BaseResponse;
 import vn.com.gsoft.customer.service.KhachHangsService;
 import vn.com.gsoft.customer.util.system.ResponseUtils;
 

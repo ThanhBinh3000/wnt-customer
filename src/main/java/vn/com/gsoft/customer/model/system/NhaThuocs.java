@@ -1,5 +1,6 @@
 package vn.com.gsoft.customer.model.system;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,16 +23,18 @@ public class NhaThuocs {
     private String email;
     private String mobile;
     private String duocSy;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
     private Date created;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
     private Date modified;
-    private Integer createdByUserId;
-    private Integer modifiedByUserId;
+    private Long createdByUserId;
+    private Long modifiedByUserId;
     private Boolean hoatDong;
     private Boolean active;
     private Boolean isReportDataGenerating;
-    private Integer tinhThanhId;
+    private Long tinhThanhId;
     private String maNhaThuocCha;
-    private Integer id;
+    private Long id;
     private Boolean isConnectivity;
     private String connectivityCode;
     private String connectivityUserName;
@@ -40,23 +43,24 @@ public class NhaThuocs {
     private Boolean isGeneralPharmacy;
     private BigDecimal paidAmount;
     private String description;
-    private Integer drugStoreTypeId;
+    private Long drugStoreTypeId;
     private Boolean isPaid;
-    private Integer chainLinkId;
-    private Integer regionId;
-    private Integer cityId;
-    private Integer wardId;
+    private Long chainLinkId;
+    private Long regionId;
+    private Long cityId;
+    private Long wardId;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
     private Date lastTransDate;
     private String supportPhones;
     private String deliveryPolicy;
     private String contentThankYou;
-    private Integer recordStatusId;
-    private Integer idTypeBasic;
+    private Long recordStatusId;
+    private Long idTypeBasic;
     private String ghiChu;
     private Boolean isNationalDBConnected;
     private String imagePreviewUrl;
     private String imageThumbUrl;
-    private Integer totalNumberInvoices;
+    private Long totalNumberInvoices;
     private String connEInvoiceUserName;
     private String connEInvoicePassword;
     private String symbolCodeInvocie;
@@ -67,8 +71,10 @@ public class NhaThuocs {
     private Boolean isNationalSampleConnected;
     private String connectivityCodeMeidcal;
     private String connectivityPasswordMedical;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
     private Date expiredDate;
     private String businessDescription;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
     private Date paidDate;
     private Boolean isUploading;
     private String connEInvoiceSerialCert;
@@ -79,7 +85,7 @@ public class NhaThuocs {
     private Integer typeSendEinvocie;
     private String slugCustomerWebsite;
     private String googleLocationCustomerWebsite;
-    private Integer themeIdCustomerWebsite;
+    private Long themeIdCustomerWebsite;
     private String tokenZalo;
     private String zaloKey;
     private String appId;
@@ -98,13 +104,13 @@ public class NhaThuocs {
     private String zNSTrackingIdCreateAccount;
     private Boolean zNSStatusSendPayment;
     private String zNSTrackingIdPayment;
-    private Integer businessId;
+    private Long businessId;
     private Integer codeErrorConfirmPaymentZNS;
     private Integer codeErrorCreateAccountZNS;
     private String footerPrint;
     private Integer classify;
     private Integer evaluate;
-    private Integer supporterId;
+    private Long supporterId;
     private Boolean upgradeToPlus;
 }
 
