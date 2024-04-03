@@ -25,5 +25,7 @@ public class Role {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
     private Date modified;
     private Long modifiedByUserId;
+    private Long recordStatusId;
+    private Boolean isDefault;
 }
 
