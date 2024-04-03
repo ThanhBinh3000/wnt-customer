@@ -18,7 +18,6 @@ import java.util.Date;
 public class KhachHangsReq extends BaseRequest {
 
     private Long id;
-    private Integer maKhachHang;
     private String tenKhachHang;
     private String diaChi;
     private String soDienThoai;

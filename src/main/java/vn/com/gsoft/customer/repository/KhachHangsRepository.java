@@ -15,7 +15,7 @@ public interface KhachHangsRepository extends BaseRepository<KhachHangs, KhachHa
 
   @Query("SELECT c FROM KhachHangs c " +
          "WHERE 1=1 "
-          + " AND (:#{#param.maKhachHang} IS NULL OR c.maKhachHang = :#{#param.maKhachHang}) "
+//          + " AND (:#{#param.maKhachHang} IS NULL OR c.maKhachHang = :#{#param.maKhachHang}) "
           + " AND (:#{#param.tenKhachHang} IS NULL OR lower(c.tenKhachHang) LIKE lower(concat('%',CONCAT(:#{#param.tenKhachHang},'%'))))"
           + " AND (:#{#param.diaChi} IS NULL OR lower(c.diaChi) LIKE lower(concat('%',CONCAT(:#{#param.diaChi},'%'))))"
           + " AND (:#{#param.soDienThoai} IS NULL OR lower(c.soDienThoai) LIKE lower(concat('%',CONCAT(:#{#param.soDienThoai},'%'))))"
@@ -62,7 +62,7 @@ public interface KhachHangsRepository extends BaseRepository<KhachHangs, KhachHa
           + " AND (:#{#param.job} IS NULL OR lower(c.job) LIKE lower(concat('%',CONCAT(:#{#param.job},'%'))))"
           + " AND (:#{#param.abilityToPay} IS NULL OR lower(c.abilityToPay) LIKE lower(concat('%',CONCAT(:#{#param.abilityToPay},'%'))))"
           + " AND (:#{#param.zaloId} IS NULL OR lower(c.zaloId) LIKE lower(concat('%',CONCAT(:#{#param.zaloId},'%'))))"
-          + " ORDER BY c.maKhachHang desc"
+          + " ORDER BY c.tenKhachHang desc"
   )
   Page<KhachHangs> searchPage(@Param("param") KhachHangsReq param, Pageable pageable);
 
@@ -70,7 +70,7 @@ public interface KhachHangsRepository extends BaseRepository<KhachHangs, KhachHa
   
   @Query("SELECT c FROM KhachHangs c " +
          "WHERE 1=1 "
-          + " AND (:#{#param.maKhachHang} IS NULL OR c.maKhachHang = :#{#param.maKhachHang}) "
+//          + " AND (:#{#param.maKhachHang} IS NULL OR c.maKhachHang = :#{#param.maKhachHang}) "
           + " AND (:#{#param.tenKhachHang} IS NULL OR lower(c.tenKhachHang) LIKE lower(concat('%',CONCAT(:#{#param.tenKhachHang},'%'))))"
           + " AND (:#{#param.diaChi} IS NULL OR lower(c.diaChi) LIKE lower(concat('%',CONCAT(:#{#param.diaChi},'%'))))"
           + " AND (:#{#param.soDienThoai} IS NULL OR lower(c.soDienThoai) LIKE lower(concat('%',CONCAT(:#{#param.soDienThoai},'%'))))"
@@ -117,7 +117,7 @@ public interface KhachHangsRepository extends BaseRepository<KhachHangs, KhachHa
           + " AND (:#{#param.job} IS NULL OR lower(c.job) LIKE lower(concat('%',CONCAT(:#{#param.job},'%'))))"
           + " AND (:#{#param.abilityToPay} IS NULL OR lower(c.abilityToPay) LIKE lower(concat('%',CONCAT(:#{#param.abilityToPay},'%'))))"
           + " AND (:#{#param.zaloId} IS NULL OR lower(c.zaloId) LIKE lower(concat('%',CONCAT(:#{#param.zaloId},'%'))))"
-          + " ORDER BY c.maKhachHang desc"
+          + " ORDER BY c.tenKhachHang desc"
   )
   List<KhachHangs> searchList(@Param("param") KhachHangsReq param);
 
