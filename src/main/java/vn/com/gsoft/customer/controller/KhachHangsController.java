@@ -27,7 +27,7 @@ public class KhachHangsController {
   @PostMapping(value = PathContains.URL_SEARCH_PAGE, produces = MediaType.APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.OK)
   public ResponseEntity<BaseResponse> colection(@RequestBody KhachHangsReq objReq) throws Exception {
-    return ResponseEntity.ok(ResponseUtils.ok(service.searchPage(objReq)));
+    return ResponseEntity.ok(ResponseUtils.ok(service.searchCustomerManagementPage(objReq)));
   }
 
 
@@ -41,7 +41,7 @@ public class KhachHangsController {
   @PostMapping(value = PathContains.URL_CREATE, produces = MediaType.APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.CREATED)
   public ResponseEntity<BaseResponse> insert(@Valid @RequestBody KhachHangsReq objReq) throws Exception {
-    return ResponseEntity.ok(ResponseUtils.ok(service.create(objReq)));
+    return ResponseEntity.ok(ResponseUtils.ok(service.insertCustomer(objReq)));
   }
 
 
