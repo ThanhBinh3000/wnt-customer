@@ -40,6 +40,12 @@ public class KhachHangsServiceImpl extends BaseServiceImpl<KhachHangs, KhachHang
 
 	@Override
 	public Page<KhachHangsRes> searchCustomerManagementPage(KhachHangsReq req) throws Exception {
+		Profile userInfo = this.getLoggedUser();
+		if (userInfo == null)
+			throw new Exception("Bad request.");
+
+		String drugStoreCode = userInfo.getNhaThuoc().getMaNhaThuoc();
+		req.setMaNhaThuoc(drugStoreCode);
 		Pageable pageable = PageRequest.of(req.getPaggingReq().getPage(), req.getPaggingReq().getLimit());
 		return DataUtils.convertPage(hdrRepo.searchCustomerManagementPage(req, pageable), KhachHangsRes.class);
 	}
@@ -68,13 +74,11 @@ public class KhachHangsServiceImpl extends BaseServiceImpl<KhachHangs, KhachHang
 		if (e.getRecordStatusId() == null) {
 			e.setRecordStatusId(RecordStatusContains.ACTIVE);
 		}
-		if (e.getMaNhomKhachHang() == null){
-			e.setMaNhomKhachHang(0L);
-		}
 		e.setCreated(Date.from(Instant.now()));
 		e.setCreatedByUserId(userInfo.getId());
+
 		e = hdrRepo.save(e);
-		if(e.getId() > 0 && e.getNoDauKy().compareTo(BigDecimal.valueOf(0)) > 0){
+		if (e.getId() > 0 && e.getNoDauKy().compareTo(BigDecimal.valueOf(0)) > 0){
 
 		}
 		return e;

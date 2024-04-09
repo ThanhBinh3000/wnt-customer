@@ -31,7 +31,7 @@ public class KhachHangs extends BaseEntity {
     private String diaChi;
     @Column(name = "SoDienThoai")
     private String soDienThoai;
-    @Column(name = "NoDauKy", columnDefinition = "decimal default 0")
+    @Column(name = "NoDauKy" , columnDefinition = "decimal default 0")
     private BigDecimal noDauKy;
     @Column(name = "DonViCongTac")
     private String donViCongTac;
@@ -43,9 +43,9 @@ public class KhachHangs extends BaseEntity {
     private String maNhaThuoc;
     @Column(name = "MaNhomKhachHang")
     private Long maNhomKhachHang;
-    @Column(name = "Active", columnDefinition = "bit default 1")
+    @Column(name = "Active")
     private Boolean active;
-    @Column(name = "CustomerTypeId", columnDefinition = "integer default 1")
+    @Column(name = "CustomerTypeId" , columnDefinition = "integer default 0")
     private Integer customerTypeId;
     @Column(name = "BarCode")
     private String barCode;
@@ -59,13 +59,13 @@ public class KhachHangs extends BaseEntity {
     private BigDecimal initScore;
     @Column(name = "ArchivedId", columnDefinition = "integer default 0")
     private Integer archivedId;
-    @Column(name = "ReferenceId")
+    @Column(name = "ReferenceId", columnDefinition = "integer default 0")
     private Integer referenceId;
     @Column(name = "StoreId", columnDefinition = "integer default 0")
     private Integer storeId;
-    @Column(name = "RegionId" ,columnDefinition = "integer default 0")
+    @Column(name = "RegionId", columnDefinition = "integer default 0" )
     private Integer regionId;
-    @Column(name = "CityId", columnDefinition = "integer default 0")
+    @Column(name = "CityId",columnDefinition = "integer default 0")
     private Integer cityId;
     @Column(name = "WardId", columnDefinition = "integer default 0")
     private Integer wardId;
@@ -81,7 +81,7 @@ public class KhachHangs extends BaseEntity {
     private Integer mappingStoreId;
     @Column(name = "TotalScore" , columnDefinition = "decimal default 0")
     private BigDecimal totalScore;
-    @Column(name = "SexId")
+    @Column(name = "SexId", columnDefinition = "integer default 0")
     private Integer sexId;
     @Column(name = "NameContacter")
     private String nameContacter;
@@ -89,7 +89,7 @@ public class KhachHangs extends BaseEntity {
     private String phoneContacter;
     @Column(name = "RefCus")
     private String refCus;
-    @Column(name = "CusType")
+    @Column(name = "CusType", columnDefinition = "boolean default 0")
     private Boolean cusType;
     @Column(name = "TaxCode")
     private String taxCode;
