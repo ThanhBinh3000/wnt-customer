@@ -41,7 +41,7 @@ public class KhachHangsController {
   @PostMapping(value = PathContains.URL_CREATE, produces = MediaType.APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.CREATED)
   public ResponseEntity<BaseResponse> insert(@Valid @RequestBody KhachHangsReq objReq) throws Exception {
-    return ResponseEntity.ok(ResponseUtils.ok(service.insertCustomer(objReq)));
+    return ResponseEntity.ok(ResponseUtils.ok(service.create(objReq)));
   }
 
 

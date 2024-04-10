@@ -44,29 +44,29 @@ public class KhachHangsServiceImpl extends BaseServiceImpl<KhachHangs, KhachHang
 		if (userInfo == null)
 			throw new Exception("Bad request.");
 
-		String drugStoreCode = userInfo.getNhaThuoc().getMaNhaThuoc();
-		req.setMaNhaThuoc(drugStoreCode);
+		String storeCode = userInfo.getNhaThuoc().getMaNhaThuoc();
+		req.setMaNhaThuoc(storeCode);
 		Pageable pageable = PageRequest.of(req.getPaggingReq().getPage(), req.getPaggingReq().getLimit());
 		return DataUtils.convertPage(hdrRepo.searchCustomerManagementPage(req, pageable), KhachHangsRes.class);
 	}
 
 	@Override
-	public KhachHangs insertCustomer(KhachHangsReq req) throws Exception {
+	public KhachHangs create(KhachHangsReq req) throws Exception {
 		Profile userInfo = this.getLoggedUser();
 		if (userInfo == null)
 			throw new Exception("Bad request.");
 
-		var drugStoreCode = userInfo.getNhaThuoc().getMaNhaThuoc();
+		var storeCode = userInfo.getNhaThuoc().getMaNhaThuoc();
 		if (req.getSoDienThoai() != null){
-			List<KhachHangs> customers = this.hdrRepo.findCustomerByPhoneNumber(req.getSoDienThoai(), drugStoreCode);
+			List<KhachHangs> customers = this.hdrRepo.findCustomerByPhoneNumber(req.getSoDienThoai(), storeCode);
 			if(!customers.isEmpty()) throw new Exception("Số điện thoại khách hàng đã tồn tại");
 		}
 		if (req.getCode() != null){
-			List<KhachHangs> customers = this.hdrRepo.findCustomerByCode(req.getCode(), drugStoreCode);
+			List<KhachHangs> customers = this.hdrRepo.findCustomerByCode(req.getCode(), storeCode);
 			if(!customers.isEmpty()) throw new Exception("Mã khách hàng đã tồn tại");
 		}
 		if (req.getBarCode() != null){
-			List<KhachHangs> customers = this.hdrRepo.findCustomerByBarcode(req.getBarCode(), drugStoreCode);
+			List<KhachHangs> customers = this.hdrRepo.findCustomerByBarcode(req.getBarCode(), storeCode);
 			if(!customers.isEmpty()) throw new Exception("Mã vạch khách hàng đã tồn tại");
 		}
 		KhachHangs e = new KhachHangs();
