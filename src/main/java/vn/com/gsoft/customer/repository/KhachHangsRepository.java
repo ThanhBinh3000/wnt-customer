@@ -147,11 +147,11 @@ public interface KhachHangsRepository extends BaseRepository<KhachHangs, KhachHa
           + " AND (:#{#param.wardId} IS NULL OR c.wardId = :#{#param.wardId})"
           + " AND (:#{#param.mappingStoreId} IS NULL OR c.mappingStoreId = :#{#param.mappingStoreId})"
           + " AND (:#{#param.zaloId} IS NULL OR lower(c.zaloId) LIKE lower(concat('%',CONCAT(:#{#param.zaloId},'%'))))"
-          + " AND (:#{#param.textSearch} IS NULL OR lower(c.tenkhachHang) LIKE lower(concat('%',CONCAT(:#{#param.textSearch},'%'))))"
-          + " AND (:#{#param.textSearch} IS NULL OR lower(c.code) LIKE lower(concat('%',CONCAT(:#{#param.textSearch},'%'))))"
-          + " AND (:#{#param.textSearch} IS NULL OR lower(c.barcode) LIKE lower(concat('%',CONCAT(:#{#param.textSearch},'%'))))"
-          + " AND (:#{#param.textSearch} IS NULL OR lower(c.diaChi) LIKE lower(concat('%',CONCAT(:#{#param.textSearch},'%'))))"
-          + " AND (:#{#param.textSearch} IS NULL OR lower(c.soDienThoai) LIKE lower(concat('%',CONCAT(:#{#param.textSearch},'%'))))"
+          + " AND ((:#{#param.textSearch} IS NULL OR lower(c.tenkhachHang) LIKE lower(concat('%',CONCAT(:#{#param.textSearch},'%'))))"
+          + " OR (:#{#param.textSearch} IS NULL OR lower(c.code) LIKE lower(concat('%',CONCAT(:#{#param.textSearch},'%'))))"
+          + " OR (:#{#param.textSearch} IS NULL OR lower(c.barcode) LIKE lower(concat('%',CONCAT(:#{#param.textSearch},'%'))))"
+          + " OR (:#{#param.textSearch} IS NULL OR lower(c.diaChi) LIKE lower(concat('%',CONCAT(:#{#param.textSearch},'%'))))"
+          + " OR (:#{#param.textSearch} IS NULL OR lower(c.soDienThoai) LIKE lower(concat('%',CONCAT(:#{#param.textSearch},'%')))))"
           + " ORDER BY c.created desc",
           nativeQuery = true
   )
