@@ -17,7 +17,6 @@ import java.util.Date;
 @Data
 public class KhachHangsReq extends BaseRequest {
 
-    private Long id;
     private String tenKhachHang;
     private String diaChi;
     private String soDienThoai;
