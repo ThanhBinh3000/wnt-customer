@@ -2,8 +2,6 @@ package vn.com.gsoft.customer.service.impl;
 
 
 import lombok.extern.log4j.Log4j2;
-import org.apache.kafka.common.protocol.types.Field;
-import org.modelmapper.internal.bytebuddy.implementation.bytecode.Throw;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -12,7 +10,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import vn.com.gsoft.customer.constant.RecordStatusContains;
 import vn.com.gsoft.customer.entity.KhachHangs;
-import vn.com.gsoft.customer.entity.NhomKhachHangs;
 import vn.com.gsoft.customer.model.dto.KhachHangsReq;
 import vn.com.gsoft.customer.model.dto.KhachHangsRes;
 import vn.com.gsoft.customer.model.system.Profile;
@@ -46,6 +43,7 @@ public class KhachHangsServiceImpl extends BaseServiceImpl<KhachHangs, KhachHang
 
 		String storeCode = userInfo.getNhaThuoc().getMaNhaThuoc();
 		req.setMaNhaThuoc(storeCode);
+		req.setRecordStatusId(req.getDataDelete() ? RecordStatusContains.DELETED : RecordStatusContains.ACTIVE);
 		Pageable pageable = PageRequest.of(req.getPaggingReq().getPage(), req.getPaggingReq().getLimit());
 		return DataUtils.convertPage(hdrRepo.searchCustomerManagementPage(req, pageable), KhachHangsRes.class);
 	}
@@ -58,19 +56,19 @@ public class KhachHangsServiceImpl extends BaseServiceImpl<KhachHangs, KhachHang
 
 		var storeCode = userInfo.getNhaThuoc().getMaNhaThuoc();
 		if (req.getSoDienThoai() != null){
-			List<KhachHangs> customers = this.hdrRepo.findCustomerByPhoneNumber(req.getSoDienThoai(), storeCode);
+			List<KhachHangs> customers = this.hdrRepo.findCustomerByPhoneNumber(req.getSoDienThoai(), storeCode, null);
 			if(!customers.isEmpty()) throw new Exception("Số điện thoại khách hàng đã tồn tại");
 		}
 		if (req.getCode() != null){
-			List<KhachHangs> customers = this.hdrRepo.findCustomerByCode(req.getCode(), storeCode);
+			List<KhachHangs> customers = this.hdrRepo.findCustomerByCode(req.getCode(), storeCode, null);
 			if(!customers.isEmpty()) throw new Exception("Mã khách hàng đã tồn tại");
 		}
 		if (req.getBarCode() != null){
-			List<KhachHangs> customers = this.hdrRepo.findCustomerByBarcode(req.getBarCode(), storeCode);
+			List<KhachHangs> customers = this.hdrRepo.findCustomerByBarcode(req.getBarCode(), storeCode, null);
 			if(!customers.isEmpty()) throw new Exception("Mã vạch khách hàng đã tồn tại");
 		}
 		KhachHangs e = new KhachHangs();
-		BeanUtils.copyProperties(req, e, "id");
+		BeanUtils.copyProperties(req, e,"id");
 		if (e.getRecordStatusId() == null) {
 			e.setRecordStatusId(RecordStatusContains.ACTIVE);
 		}
@@ -80,6 +78,40 @@ public class KhachHangsServiceImpl extends BaseServiceImpl<KhachHangs, KhachHang
 		e = hdrRepo.save(e);
 		if (e.getId() > 0 && e.getNoDauKy().compareTo(BigDecimal.valueOf(0)) > 0){
 
+		}
+		return e;
+	}
+	@Override
+	public KhachHangs update(KhachHangsReq req) throws Exception {
+		Profile userInfo = this.getLoggedUser();
+		if (userInfo == null)
+			throw new Exception("Bad request.");
+
+		var storeCode = userInfo.getNhaThuoc().getMaNhaThuoc();
+		if (req.getSoDienThoai() != null){
+			List<KhachHangs> customers = this.hdrRepo.findCustomerByPhoneNumber(req.getSoDienThoai(), storeCode, req.getId());
+			if(!customers.isEmpty()) throw new Exception("Số điện thoại khách hàng đã tồn tại");
+		}
+		if (req.getCode() != null){
+			List<KhachHangs> customers = this.hdrRepo.findCustomerByCode(req.getCode(), storeCode, req.getId());
+			if(!customers.isEmpty()) throw new Exception("Mã khách hàng đã tồn tại");
+		}
+		if (req.getBarCode() != null){
+			List<KhachHangs> customers = this.hdrRepo.findCustomerByBarcode(req.getBarCode(), storeCode, req.getId());
+			if(!customers.isEmpty()) throw new Exception("Mã vạch khách hàng đã tồn tại");
+		}
+		Optional<KhachHangs> optional = hdrRepo.findById(req.getId());
+		KhachHangs e = optional.get();
+		BeanUtils.copyProperties(req, e,"id");
+
+		e.setModified(Date.from(Instant.now()));
+		e.setModifiedByUserId(userInfo.getId());
+
+		e = hdrRepo.save(e);
+		if (e.getNoDauKy() != null){
+			if(e.getNoDauKy().compareTo(BigDecimal.valueOf(0)) > 0){
+
+			}
 		}
 		return e;
 	}

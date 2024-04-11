@@ -25,7 +25,7 @@ public class KhachHangsReq extends BaseRequest {
     private String email;
     private String ghiChu;
     private String maNhaThuoc;
-    private Integer maNhomKhachHang;
+    private Long maNhomKhachHang;
     private Date created;
     private Date modified;
     private Integer createdByUserId;

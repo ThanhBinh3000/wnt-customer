@@ -7,11 +7,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import vn.com.gsoft.customer.entity.KhachHangs;
-import vn.com.gsoft.customer.entity.NhomKhachHangs;
 import vn.com.gsoft.customer.model.dto.KhachHangsReq;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface KhachHangsRepository extends BaseRepository<KhachHangs, KhachHangsReq, Long> {
@@ -125,7 +123,8 @@ public interface KhachHangsRepository extends BaseRepository<KhachHangs, KhachHa
   List<KhachHangs> searchList(@Param("param") KhachHangsReq param);
   @Query(value = "SELECT c.id AS id, c.code AS code, c.tenKhachHang AS tenKhachHang,"
           + " c.soDienThoai AS soDienThoai, c.barcode AS barcode, n.tenNhomKhachHang AS tenNhomKhachHang,"
-          + " c.MappingStoreId as mappingStoreId, c.zaloId AS zaloId, c.created AS created"
+          + " c.MappingStoreId as mappingStoreId, c.zaloId AS zaloId, c.created AS created,"
+          + " c.birthDate AS birthDate"
           + " FROM KhachHangs c"
           + " JOIN NhomKhachHangs n ON c.maNhomKhachHang = n.id"
           + " WHERE 1=1"
@@ -147,6 +146,7 @@ public interface KhachHangsRepository extends BaseRepository<KhachHangs, KhachHa
           + " AND (:#{#param.wardId} IS NULL OR c.wardId = :#{#param.wardId})"
           + " AND (:#{#param.mappingStoreId} IS NULL OR c.mappingStoreId = :#{#param.mappingStoreId})"
           + " AND (:#{#param.zaloId} IS NULL OR lower(c.zaloId) LIKE lower(concat('%',CONCAT(:#{#param.zaloId},'%'))))"
+          + " AND (:#{#param.cusType} IS NULL OR c.cusType  = :#{#param.cusType})"
           + " AND ((:#{#param.textSearch} IS NULL OR lower(c.tenkhachHang) LIKE lower(concat('%',CONCAT(:#{#param.textSearch},'%'))))"
           + " OR (:#{#param.textSearch} IS NULL OR lower(c.code) LIKE lower(concat('%',CONCAT(:#{#param.textSearch},'%'))))"
           + " OR (:#{#param.textSearch} IS NULL OR lower(c.barcode) LIKE lower(concat('%',CONCAT(:#{#param.textSearch},'%'))))"
@@ -157,15 +157,15 @@ public interface KhachHangsRepository extends BaseRepository<KhachHangs, KhachHa
   )
   Page<Tuple> searchCustomerManagementPage(@Param("param") KhachHangsReq param, Pageable pageable);
   //tìm khách hàng theo số điện thoại
-  @Query(value = "SELECT * FROM KhachHangs c WHERE c.soDienThoai = :phoneNumber AND c.maNhaThuoc = :drugStoreCode", nativeQuery = true)
-  List<KhachHangs> findCustomerByPhoneNumber( @Param("phoneNumber") String phoneNumber,@Param("drugStoreCode") String drugStoreCode);
-  //tìm khách hàng theo mã khách hàng
-  @Query(value = "SELECT * FROM KhachHangs c WHERE c.code = :code AND c.maNhaThuoc = :drugStoreCode", nativeQuery = true)
-  List<KhachHangs> findCustomerByCode( @Param("code") String code,@Param("drugStoreCode") String drugStoreCode);
+  @Query(value = "SELECT * FROM KhachHangs c WHERE c.soDienThoai = :phoneNumber " +
+          "AND c.maNhaThuoc = :drugStoreCode AND (:id IS NULL OR id != :id)", nativeQuery = true)
+  List<KhachHangs> findCustomerByPhoneNumber( @Param("phoneNumber") String phoneNumber,@Param("drugStoreCode") String storeCode, @Param("id") Long id);
   //tìm khách hàng theo barcode
-  @Query(value = "SELECT * FROM KhachHangs c WHERE c.barcode = :barcode AND c.maNhaThuoc = :drugStoreCode", nativeQuery = true)
-  List<KhachHangs> findCustomerByBarcode( @Param("barcode") String barcode,@Param("drugStoreCode") String drugStoreCode);
-  //lấy nhóm khách hàng mặc định
-  @Query(value = "SELECT * FROM NhomKhachHangs c WHERE c.groupTypeId = 1 AND c.nhaThuoc_maNhaThuoc = :drugStoreCode", nativeQuery = true)
-  List<NhomKhachHangs> findGroupCustomerDefault(@Param("drugStoreCode") String drugStoreCode);
+  @Query(value = "SELECT * FROM KhachHangs c WHERE c.barcode = :barcode AND c.maNhaThuoc = :drugStoreCode" +
+          " AND (:id IS NULL OR id != :id)", nativeQuery = true)
+  List<KhachHangs> findCustomerByBarcode( @Param("barcode") String barcode,@Param("drugStoreCode") String drugStoreCode, @Param("id") Long id);
+  //tìm khách hàng theo mã khách hàng
+  @Query(value = "SELECT * FROM KhachHangs c WHERE c.code = :code AND c.maNhaThuoc = :drugStoreCode" +
+          " AND (:id IS NULL OR id != :id)", nativeQuery = true)
+  List<KhachHangs> findCustomerByCode( @Param("code") String code,@Param("drugStoreCode") String storeCode, @Param("id") Long id);
 }

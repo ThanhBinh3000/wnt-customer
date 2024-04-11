@@ -16,4 +16,5 @@ public class KhachHangsRes {
     private Long mappingStoreId;
     private String zaloId;
     private Date created;
+    private Date birthDate;
 }
