@@ -64,4 +64,10 @@ public class KhachHangsController {
   public ResponseEntity<BaseResponse> delete(@Valid @RequestBody KhachHangsReq idSearchReq) throws Exception {
     return ResponseEntity.ok(ResponseUtils.ok(service.delete(idSearchReq.getId())));
   }
+
+  @GetMapping(value = PathContains.URL_NGUOI_QUAN_TAM, produces = MediaType.APPLICATION_JSON_VALUE)
+  @ResponseStatus(HttpStatus.OK)
+  public ResponseEntity<BaseResponse> searchNguoiQuanTamOA() throws Exception {
+    return ResponseEntity.ok(ResponseUtils.ok(service.searchListFllowerOAByStoreCode("")));
+  }
 }

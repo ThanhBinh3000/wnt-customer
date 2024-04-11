@@ -12,6 +12,8 @@ import vn.com.gsoft.customer.constant.RecordStatusContains;
 import vn.com.gsoft.customer.entity.KhachHangs;
 import vn.com.gsoft.customer.model.dto.KhachHangsReq;
 import vn.com.gsoft.customer.model.dto.KhachHangsRes;
+import vn.com.gsoft.customer.model.dto.PhieuXuatNoDauKy;
+import vn.com.gsoft.customer.model.dto.ZaloOARes;
 import vn.com.gsoft.customer.model.system.Profile;
 import vn.com.gsoft.customer.repository.KhachHangsRepository;
 import vn.com.gsoft.customer.service.KhachHangsService;
@@ -55,15 +57,15 @@ public class KhachHangsServiceImpl extends BaseServiceImpl<KhachHangs, KhachHang
 			throw new Exception("Bad request.");
 
 		var storeCode = userInfo.getNhaThuoc().getMaNhaThuoc();
-		if (req.getSoDienThoai() != null){
+		if ( req.getSoDienThoai() != null && !req.getSoDienThoai().trim().isEmpty()){
 			List<KhachHangs> customers = this.hdrRepo.findCustomerByPhoneNumber(req.getSoDienThoai(), storeCode, null);
 			if(!customers.isEmpty()) throw new Exception("Số điện thoại khách hàng đã tồn tại");
 		}
-		if (req.getCode() != null){
+		if (req.getCode() != null && !req.getCode().trim().isEmpty()){
 			List<KhachHangs> customers = this.hdrRepo.findCustomerByCode(req.getCode(), storeCode, null);
 			if(!customers.isEmpty()) throw new Exception("Mã khách hàng đã tồn tại");
 		}
-		if (req.getBarCode() != null){
+		if (req.getBarCode() != null && !req.getBarCode().trim().isEmpty()){
 			List<KhachHangs> customers = this.hdrRepo.findCustomerByBarcode(req.getBarCode(), storeCode, null);
 			if(!customers.isEmpty()) throw new Exception("Mã vạch khách hàng đã tồn tại");
 		}
@@ -76,8 +78,11 @@ public class KhachHangsServiceImpl extends BaseServiceImpl<KhachHangs, KhachHang
 		e.setCreatedByUserId(userInfo.getId());
 
 		e = hdrRepo.save(e);
-		if (e.getId() > 0 && e.getNoDauKy().compareTo(BigDecimal.valueOf(0)) > 0){
-
+		if (e.getNoDauKy() != null && e.getId() > 0){
+			if(e.getNoDauKy().compareTo(BigDecimal.valueOf(0)) > 0){
+              taoPhieuDauKy(storeCode, e.getId(), userInfo.getId(), e.getNoDauKy(),
+					  userInfo.getNhaThuoc().getId());
+			}
 		}
 		return e;
 	}
@@ -88,15 +93,15 @@ public class KhachHangsServiceImpl extends BaseServiceImpl<KhachHangs, KhachHang
 			throw new Exception("Bad request.");
 
 		var storeCode = userInfo.getNhaThuoc().getMaNhaThuoc();
-		if (req.getSoDienThoai() != null){
+		if ( req.getSoDienThoai() != null && !req.getSoDienThoai().trim().isEmpty()){
 			List<KhachHangs> customers = this.hdrRepo.findCustomerByPhoneNumber(req.getSoDienThoai(), storeCode, req.getId());
 			if(!customers.isEmpty()) throw new Exception("Số điện thoại khách hàng đã tồn tại");
 		}
-		if (req.getCode() != null){
+		if (req.getCode() != null && !req.getCode().trim().isEmpty()){
 			List<KhachHangs> customers = this.hdrRepo.findCustomerByCode(req.getCode(), storeCode, req.getId());
 			if(!customers.isEmpty()) throw new Exception("Mã khách hàng đã tồn tại");
 		}
-		if (req.getBarCode() != null){
+		if (req.getBarCode() != null && !req.getBarCode().trim().isEmpty()){
 			List<KhachHangs> customers = this.hdrRepo.findCustomerByBarcode(req.getBarCode(), storeCode, req.getId());
 			if(!customers.isEmpty()) throw new Exception("Mã vạch khách hàng đã tồn tại");
 		}
@@ -109,11 +114,50 @@ public class KhachHangsServiceImpl extends BaseServiceImpl<KhachHangs, KhachHang
 
 		e = hdrRepo.save(e);
 		if (e.getNoDauKy() != null){
-			if(e.getNoDauKy().compareTo(BigDecimal.valueOf(0)) > 0){
-
-			}
+			taoPhieuDauKy(storeCode, e.getId(), userInfo.getId(), e.getNoDauKy(), userInfo.getNhaThuoc().getId());
 		}
 		return e;
 	}
+	@Override
+	public List<ZaloOARes> searchListFllowerOAByStoreCode(String storeCode) throws Exception{
+		Profile userInfo = this.getLoggedUser();
+		if (userInfo == null)
+			throw new Exception("Bad request.");
+		storeCode = userInfo.getNhaThuoc().getMaNhaThuoc();
+		return DataUtils.convertList(hdrRepo.searchListFllowerOAByStoreCode(storeCode), ZaloOARes.class);
+
+	}
+	private void taoPhieuDauKy(String storeCode, Long maKhachHang,
+							   Long userId, BigDecimal tongTien, Long storeId) throws Exception{
+		var phieuXuatNoDauKy = new PhieuXuatNoDauKy();
+		List<PhieuXuatNoDauKy> phieuXuatNoDauKys = this.hdrRepo.findPhieuXuatNoDauKyById(storeCode, maKhachHang);
+		Long recordStatusId = 0L;
+		if(!phieuXuatNoDauKys.isEmpty()){
+			recordStatusId = tongTien.compareTo(BigDecimal.valueOf(0)) == 0
+					? RecordStatusContains.DELETED : RecordStatusContains.ACTIVE;
+			phieuXuatNoDauKy.setModified(Date.from(Instant.now()));
+			phieuXuatNoDauKy.setModifiedByUserId(userId);
+			phieuXuatNoDauKy.setRecordStatusId(recordStatusId);
+			phieuXuatNoDauKy.setTongTien(tongTien);
+			phieuXuatNoDauKy.setId(phieuXuatNoDauKys.get(0).getId());
+			hdrRepo.updatePhieuXuatNoDauKy(phieuXuatNoDauKy);
+		}else{
+			phieuXuatNoDauKy.setNgayXuat(Date.from(Instant.now()));
+			phieuXuatNoDauKy.setCreated(Date.from(Instant.now()));
+			phieuXuatNoDauKy.setMaLoaiXuatNhap(7L);
+			phieuXuatNoDauKy.setMaKhachHang(maKhachHang);
+			phieuXuatNoDauKy.setCreatedByUserId(userId);
+			phieuXuatNoDauKy.setIsDebt(true);
+			phieuXuatNoDauKy.setStoreId(storeId);
+			phieuXuatNoDauKy.setMaNhaThuoc(storeCode);
+			phieuXuatNoDauKy.setTongTien(tongTien);
+			phieuXuatNoDauKy.setRecordStatusId(RecordStatusContains.ACTIVE);
+
+			this.hdrRepo.insertPhieuXuatNoDauKy(phieuXuatNoDauKy);
+		}
+
+
+	}
+
 }
 

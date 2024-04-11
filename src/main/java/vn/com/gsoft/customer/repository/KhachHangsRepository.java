@@ -2,12 +2,14 @@ package vn.com.gsoft.customer.repository;
 
 import jakarta.persistence.Tuple;
 import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Repository;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import vn.com.gsoft.customer.entity.KhachHangs;
 import vn.com.gsoft.customer.model.dto.KhachHangsReq;
+import vn.com.gsoft.customer.model.dto.PhieuXuatNoDauKy;
 
 import java.util.List;
 
@@ -158,14 +160,55 @@ public interface KhachHangsRepository extends BaseRepository<KhachHangs, KhachHa
   Page<Tuple> searchCustomerManagementPage(@Param("param") KhachHangsReq param, Pageable pageable);
   //tìm khách hàng theo số điện thoại
   @Query(value = "SELECT * FROM KhachHangs c WHERE c.soDienThoai = :phoneNumber " +
-          "AND c.maNhaThuoc = :drugStoreCode AND (:id IS NULL OR id != :id)", nativeQuery = true)
-  List<KhachHangs> findCustomerByPhoneNumber( @Param("phoneNumber") String phoneNumber,@Param("drugStoreCode") String storeCode, @Param("id") Long id);
+          "AND c.maNhaThuoc = :storeCode AND (:id IS NULL OR id != :id)", nativeQuery = true)
+  List<KhachHangs> findCustomerByPhoneNumber( @Param("phoneNumber") String phoneNumber,@Param("storeCode") String storeCode, @Param("id") Long id);
   //tìm khách hàng theo barcode
-  @Query(value = "SELECT * FROM KhachHangs c WHERE c.barcode = :barcode AND c.maNhaThuoc = :drugStoreCode" +
+  @Query(value = "SELECT * FROM KhachHangs c WHERE c.barcode = :barcode AND c.maNhaThuoc = :storeCode" +
           " AND (:id IS NULL OR id != :id)", nativeQuery = true)
-  List<KhachHangs> findCustomerByBarcode( @Param("barcode") String barcode,@Param("drugStoreCode") String drugStoreCode, @Param("id") Long id);
+  List<KhachHangs> findCustomerByBarcode( @Param("barcode") String barcode,@Param("storeCode") String drugStoreCode, @Param("id") Long id);
   //tìm khách hàng theo mã khách hàng
-  @Query(value = "SELECT * FROM KhachHangs c WHERE c.code = :code AND c.maNhaThuoc = :drugStoreCode" +
+  @Query(value = "SELECT * FROM KhachHangs c WHERE c.code = :code AND c.maNhaThuoc = :storeCode" +
           " AND (:id IS NULL OR id != :id)", nativeQuery = true)
-  List<KhachHangs> findCustomerByCode( @Param("code") String code,@Param("drugStoreCode") String storeCode, @Param("id") Long id);
+  List<KhachHangs> findCustomerByCode( @Param("code") String code,@Param("storeCode") String storeCode, @Param("id") Long id);
+  //Thêm mới phiếu xuất nợ đầu kỳ
+  @Modifying
+  @Query( value = "INSERT INTO PhieuXuats " +
+                  "(NhaThuoc_MaNhaThuoc, KhachHang_MaKhachHang, NgayXuat, Created, CreatedBy_UserId, RecordStatusID, IsDebt, TongTien, MaLoaiXuatNhap, StoreId) " +
+                  "VALUES (:#{#param.maNhaThuoc}, " +
+                  ":#{#param.maKhachHang}, " +
+                  ":#{#param.ngayXuat}, " +
+                  ":#{#param.created}, " +
+                  ":#{#param.createdByUserId}, " +
+                  ":#{#param.recordStatusId}, " +
+                  ":#{#param.isDebt}, " +
+                  ":#{#param.tongTien}, " +
+                  ":#{#param.maLoaiXuatNhap}, " +
+                  ":#{#param.storeId})",
+          nativeQuery = true)
+  void insertPhieuXuatNoDauKy(@Param("param") PhieuXuatNoDauKy param);
+  //cập nhật phiếu xuất nợ đầu kỳ
+  @Modifying
+  @Query( value = "UPDATE PhieuXuats SET" +
+          "IsDebt = :#{#param.isDebt}, " +
+          "TongTien = :#{#param.tongTien}, " +
+          "Modified = :#{#param.modified}, " +
+          "ModifiedBy_UserId = :#{#param.modifiedByUserId}, " +
+          "RecordStatusID = :#{#param.recordStatusId} " +
+          "WHERE NhaThuoc_MaNhaThuoc = :#{#param.maNhaThuoc} AND KhachHang_MaKhachHang = :#{#param.maKhachHang} AND MaLoaiXuatNhap = 7",
+          nativeQuery = true)
+  void updatePhieuXuatNoDauKy(@Param("param") PhieuXuatNoDauKy param);
+  //kiểm tra đã tồn tại phiếu đầu kỳ chưa
+  @Query(value = "SELECT c.NhaThuoc_MaNhaThuoc AS maNhaThuoc, c.KhachHang_MaKhachHang AS maKhachHang," +
+          " c.NgayXuat AS ngayXuat, c.Created AS Created, c.CreatedBy_UserId AS createdByUserId," +
+          " c.RecordStatusID AS recordStatusID, c.IsDebt AS isDebt, c.TongTien AS tongTien," +
+          " c.MaLoaiXuatNhap AS maLoaiXuatNhap, c.Id AS id, c.StoreId AS storeId, c.ModifiedBy_UserId AS modifiedByUserId," +
+          " c.Modified AS modified" +
+          " FROM PhieuXuats c WHERE c.NhaThuoc_MaNhaThuoc = :storeCode AND c.KhachHang_MaKhachHang = :maKhachHang" +
+          " AND MaLoaiXuatNhap = 7",
+          nativeQuery = true)
+  List<PhieuXuatNoDauKy> findPhieuXuatNoDauKyById( @Param("storeCode") String storeCode,@Param("maKhachHang") Long maKhachHang);
+  @Query(value = "SELECT c.Id  id, c.UserName AS userName, c.UserId AS userId, c.DrugStoreCode AS drugStoreCode, c.Avatar AS avatar" +
+          " FROM FollowerZaloOA c WHERE DrugStoreCode = :storeCode"
+          , nativeQuery = true)
+  List<Tuple> searchListFllowerOAByStoreCode( @Param("storeCode") String storeCode);
 }

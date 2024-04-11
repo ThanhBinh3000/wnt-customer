@@ -18,6 +18,7 @@ public class PathContains {
     public static final String URL_DON_VI_TINH = "/don-vi-tinh";
     public static final String URL_THUOC = "/thuoc";
     public static final String URL_WAREHOUSE_LOCATION = "/warehouse-location";
+    public static final String URL_NGUOI_QUAN_TAM = "/nguoi-quan-tam-oa";
 
 
 }
