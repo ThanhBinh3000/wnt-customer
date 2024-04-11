@@ -23,8 +23,6 @@ public class KhachHangs extends BaseEntity {
     @GeneratedValue(strategy=GenerationType.IDENTITY)
     private Long id;
 
-//    @Column(name = "MaKhachHang")
-//    private Integer maKhachHang;
     @Column(name = "TenKhachHang")
     private String tenKhachHang;
     @Column(name = "DiaChi")

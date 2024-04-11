@@ -160,10 +160,10 @@ public interface KhachHangsRepository extends BaseRepository<KhachHangs, KhachHa
   @Query(value = "SELECT * FROM KhachHangs c WHERE c.soDienThoai = :phoneNumber AND c.maNhaThuoc = :drugStoreCode", nativeQuery = true)
   List<KhachHangs> findCustomerByPhoneNumber( @Param("phoneNumber") String phoneNumber,@Param("drugStoreCode") String drugStoreCode);
   //tìm khách hàng theo mã khách hàng
-  @Query(value = "SELECT * FROM KhachHangs c WHERE c.soDienThoai = :code AND c.maNhaThuoc = :drugStoreCode", nativeQuery = true)
+  @Query(value = "SELECT * FROM KhachHangs c WHERE c.code = :code AND c.maNhaThuoc = :drugStoreCode", nativeQuery = true)
   List<KhachHangs> findCustomerByCode( @Param("code") String code,@Param("drugStoreCode") String drugStoreCode);
   //tìm khách hàng theo barcode
-  @Query(value = "SELECT * FROM KhachHangs c WHERE c.soDienThoai = :barcode AND c.maNhaThuoc = :drugStoreCode", nativeQuery = true)
+  @Query(value = "SELECT * FROM KhachHangs c WHERE c.barcode = :barcode AND c.maNhaThuoc = :drugStoreCode", nativeQuery = true)
   List<KhachHangs> findCustomerByBarcode( @Param("barcode") String barcode,@Param("drugStoreCode") String drugStoreCode);
   //lấy nhóm khách hàng mặc định
   @Query(value = "SELECT * FROM NhomKhachHangs c WHERE c.groupTypeId = 1 AND c.nhaThuoc_maNhaThuoc = :drugStoreCode", nativeQuery = true)
