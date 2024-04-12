@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.com.gsoft.customer.constant.PathContains;
 import vn.com.gsoft.customer.model.dto.KhachHangsReq;
+import vn.com.gsoft.customer.model.dto.MappingKhachHangReq;
+import vn.com.gsoft.customer.model.dto.ZaloOAReq;
 import vn.com.gsoft.customer.model.system.BaseResponse;
 import vn.com.gsoft.customer.service.KhachHangsService;
 import vn.com.gsoft.customer.util.system.ResponseUtils;
@@ -57,17 +59,25 @@ public class KhachHangsController {
   public ResponseEntity<BaseResponse> detail(@PathVariable("id") Long id) throws Exception {
     return ResponseEntity.ok(ResponseUtils.ok(service.detail(id)));
   }
-
-
   @PostMapping(value = PathContains.URL_DELETE, produces = MediaType.APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.OK)
   public ResponseEntity<BaseResponse> delete(@Valid @RequestBody KhachHangsReq idSearchReq) throws Exception {
     return ResponseEntity.ok(ResponseUtils.ok(service.delete(idSearchReq.getId())));
   }
 
-  @GetMapping(value = PathContains.URL_NGUOI_QUAN_TAM, produces = MediaType.APPLICATION_JSON_VALUE)
+  @PostMapping(value = PathContains.URL_SEARCH_PAGE + "-nguoi-quan-tam-oa", produces = MediaType.APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.OK)
-  public ResponseEntity<BaseResponse> searchNguoiQuanTamOA() throws Exception {
-    return ResponseEntity.ok(ResponseUtils.ok(service.searchListFllowerOAByStoreCode("")));
+  public ResponseEntity<BaseResponse> searchNguoiQuanTamOA(@Valid @RequestBody ZaloOAReq req) throws Exception {
+    return ResponseEntity.ok(ResponseUtils.ok(service.searchPageFlowerOAByStoreCode(req)));
+  }
+  @PostMapping(value = PathContains.URL_UPDATE+ "-mapping-store", produces = MediaType.APPLICATION_JSON_VALUE)
+  @ResponseStatus(HttpStatus.CREATED)
+  public ResponseEntity<BaseResponse> updateMappingStore(@Valid @RequestBody MappingKhachHangReq objReq) throws Exception {
+    return ResponseEntity.ok(ResponseUtils.ok(service.updateMappingStore(objReq)));
+  }
+  @PostMapping(value = PathContains.URL_UPDATE+ "-mapping-zalo-oa", produces = MediaType.APPLICATION_JSON_VALUE)
+  @ResponseStatus(HttpStatus.CREATED)
+  public ResponseEntity<BaseResponse> updateMappingZaloOa(@Valid @RequestBody MappingKhachHangReq objReq) throws Exception {
+    return ResponseEntity.ok(ResponseUtils.ok(service.updateMappingZaloOA(objReq)));
   }
 }

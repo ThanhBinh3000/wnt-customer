@@ -10,10 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import vn.com.gsoft.customer.constant.RecordStatusContains;
 import vn.com.gsoft.customer.entity.KhachHangs;
-import vn.com.gsoft.customer.model.dto.KhachHangsReq;
-import vn.com.gsoft.customer.model.dto.KhachHangsRes;
-import vn.com.gsoft.customer.model.dto.PhieuXuatNoDauKy;
-import vn.com.gsoft.customer.model.dto.ZaloOARes;
+import vn.com.gsoft.customer.model.dto.*;
 import vn.com.gsoft.customer.model.system.Profile;
 import vn.com.gsoft.customer.repository.KhachHangsRepository;
 import vn.com.gsoft.customer.service.KhachHangsService;
@@ -29,14 +26,15 @@ import java.util.Optional;
 @Service
 @Log4j2
 public class KhachHangsServiceImpl extends BaseServiceImpl<KhachHangs, KhachHangsReq,Long> implements KhachHangsService {
-
+	//region Fields
 	private KhachHangsRepository hdrRepo;
+	//endregion
+	//region Interface Implementation
 	@Autowired
 	public KhachHangsServiceImpl(KhachHangsRepository hdrRepo) {
 		super(hdrRepo);
 		this.hdrRepo = hdrRepo;
 	}
-
 	@Override
 	public Page<KhachHangsRes> searchCustomerManagementPage(KhachHangsReq req) throws Exception {
 		Profile userInfo = this.getLoggedUser();
@@ -49,7 +47,6 @@ public class KhachHangsServiceImpl extends BaseServiceImpl<KhachHangs, KhachHang
 		Pageable pageable = PageRequest.of(req.getPaggingReq().getPage(), req.getPaggingReq().getLimit());
 		return DataUtils.convertPage(hdrRepo.searchCustomerManagementPage(req, pageable), KhachHangsRes.class);
 	}
-
 	@Override
 	public KhachHangs create(KhachHangsReq req) throws Exception {
 		Profile userInfo = this.getLoggedUser();
@@ -119,22 +116,44 @@ public class KhachHangsServiceImpl extends BaseServiceImpl<KhachHangs, KhachHang
 		return e;
 	}
 	@Override
-	public List<ZaloOARes> searchListFllowerOAByStoreCode(String storeCode) throws Exception{
+	public Page<ZaloOARes> searchPageFlowerOAByStoreCode(ZaloOAReq req) throws Exception{
 		Profile userInfo = this.getLoggedUser();
 		if (userInfo == null)
 			throw new Exception("Bad request.");
-		storeCode = userInfo.getNhaThuoc().getMaNhaThuoc();
-		return DataUtils.convertList(hdrRepo.searchListFllowerOAByStoreCode(storeCode), ZaloOARes.class);
+		var storeCode = userInfo.getNhaThuoc().getMaNhaThuoc();
+		req.setMaNhaThuoc(storeCode);
+		Pageable pageable = PageRequest.of(req.getPaggingReq().getPage(), req.getPaggingReq().getLimit());
+		return DataUtils.convertPage(hdrRepo.searchPageFlowerOAByStoreCode(req, pageable), ZaloOARes.class);
 
 	}
+	@Override
+	public int updateMappingStore(MappingKhachHangReq req) throws Exception {
+		if (req.getMaKhachHang() <= 0) return 0;
+		Optional<KhachHangs> optional = hdrRepo.findById(req.getMaKhachHang());
+		KhachHangs e = optional.get();
+		e.setMappingStoreId(req.getMappingStoreId());
+		e = hdrRepo.save(e);
+		return 1;
+	}
+	@Override
+	public int updateMappingZaloOA(MappingKhachHangReq req) throws Exception {
+		if (req.getMaKhachHang() <= 0) return 0;
+		Optional<KhachHangs> optional = hdrRepo.findById(req.getMaKhachHang());
+		KhachHangs e = optional.get();
+		e.setZaloId(req.getZaloId());
+		e = hdrRepo.save(e);
+		return 1;
+	}
+	//endregion
+	//region Private Methods
 	private void taoPhieuDauKy(String storeCode, Long maKhachHang,
 							   Long userId, BigDecimal tongTien, Long storeId) throws Exception{
-		var phieuXuatNoDauKy = new PhieuXuatNoDauKy();
-		List<PhieuXuatNoDauKy> phieuXuatNoDauKys = this.hdrRepo.findPhieuXuatNoDauKyById(storeCode, maKhachHang);
+		var phieuXuatNoDauKy = new PhieuXuatNoDauKyRes();
+		List<PhieuXuatNoDauKyRes> phieuXuatNoDauKys = this.hdrRepo.findPhieuXuatNoDauKyById(storeCode, maKhachHang);
 		Long recordStatusId = 0L;
 		if(!phieuXuatNoDauKys.isEmpty()){
 			recordStatusId = tongTien.compareTo(BigDecimal.valueOf(0)) == 0
-					? RecordStatusContains.DELETED : RecordStatusContains.ACTIVE;
+					        ? RecordStatusContains.DELETED : RecordStatusContains.ACTIVE;
 			phieuXuatNoDauKy.setModified(Date.from(Instant.now()));
 			phieuXuatNoDauKy.setModifiedByUserId(userId);
 			phieuXuatNoDauKy.setRecordStatusId(recordStatusId);
@@ -155,9 +174,8 @@ public class KhachHangsServiceImpl extends BaseServiceImpl<KhachHangs, KhachHang
 
 			this.hdrRepo.insertPhieuXuatNoDauKy(phieuXuatNoDauKy);
 		}
-
-
 	}
+	//endregion
 
 }
 

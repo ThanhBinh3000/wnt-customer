@@ -9,7 +9,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import vn.com.gsoft.customer.entity.KhachHangs;
 import vn.com.gsoft.customer.model.dto.KhachHangsReq;
-import vn.com.gsoft.customer.model.dto.PhieuXuatNoDauKy;
+import vn.com.gsoft.customer.model.dto.PhieuXuatNoDauKyRes;
+import vn.com.gsoft.customer.model.dto.ZaloOAReq;
 
 import java.util.List;
 
@@ -68,9 +69,6 @@ public interface KhachHangsRepository extends BaseRepository<KhachHangs, KhachHa
           + " ORDER BY c.tenKhachHang desc"
   )
   Page<KhachHangs> searchPage(@Param("param") KhachHangsReq param, Pageable pageable);
-
-
-  
   @Query("SELECT c FROM KhachHangs c " +
          "WHERE 1=1 "
 //          + " AND (:#{#param.maKhachHang} IS NULL OR c.maKhachHang = :#{#param.maKhachHang}) "
@@ -185,7 +183,7 @@ public interface KhachHangsRepository extends BaseRepository<KhachHangs, KhachHa
                   ":#{#param.maLoaiXuatNhap}, " +
                   ":#{#param.storeId})",
           nativeQuery = true)
-  void insertPhieuXuatNoDauKy(@Param("param") PhieuXuatNoDauKy param);
+  void insertPhieuXuatNoDauKy(@Param("param") PhieuXuatNoDauKyRes param);
   //cập nhật phiếu xuất nợ đầu kỳ
   @Modifying
   @Query( value = "UPDATE PhieuXuats SET" +
@@ -196,7 +194,7 @@ public interface KhachHangsRepository extends BaseRepository<KhachHangs, KhachHa
           "RecordStatusID = :#{#param.recordStatusId} " +
           "WHERE NhaThuoc_MaNhaThuoc = :#{#param.maNhaThuoc} AND KhachHang_MaKhachHang = :#{#param.maKhachHang} AND MaLoaiXuatNhap = 7",
           nativeQuery = true)
-  void updatePhieuXuatNoDauKy(@Param("param") PhieuXuatNoDauKy param);
+  void updatePhieuXuatNoDauKy(@Param("param") PhieuXuatNoDauKyRes param);
   //kiểm tra đã tồn tại phiếu đầu kỳ chưa
   @Query(value = "SELECT c.NhaThuoc_MaNhaThuoc AS maNhaThuoc, c.KhachHang_MaKhachHang AS maKhachHang," +
           " c.NgayXuat AS ngayXuat, c.Created AS Created, c.CreatedBy_UserId AS createdByUserId," +
@@ -206,9 +204,10 @@ public interface KhachHangsRepository extends BaseRepository<KhachHangs, KhachHa
           " FROM PhieuXuats c WHERE c.NhaThuoc_MaNhaThuoc = :storeCode AND c.KhachHang_MaKhachHang = :maKhachHang" +
           " AND MaLoaiXuatNhap = 7",
           nativeQuery = true)
-  List<PhieuXuatNoDauKy> findPhieuXuatNoDauKyById( @Param("storeCode") String storeCode,@Param("maKhachHang") Long maKhachHang);
+  List<PhieuXuatNoDauKyRes> findPhieuXuatNoDauKyById(@Param("storeCode") String storeCode, @Param("maKhachHang") Long maKhachHang);
+  //danh sách người quan tâm oa theo mã nhà thuốc
   @Query(value = "SELECT c.Id  id, c.UserName AS userName, c.UserId AS userId, c.DrugStoreCode AS drugStoreCode, c.Avatar AS avatar" +
-          " FROM FollowerZaloOA c WHERE DrugStoreCode = :storeCode"
+          " FROM FollowerZaloOA c WHERE DrugStoreCode = :#{#param.maNhaThuoc}"
           , nativeQuery = true)
-  List<Tuple> searchListFllowerOAByStoreCode( @Param("storeCode") String storeCode);
+  Page<Tuple> searchPageFlowerOAByStoreCode(@Param("param") ZaloOAReq rep, Pageable pageable);
 }

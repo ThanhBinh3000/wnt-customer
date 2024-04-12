@@ -8,7 +8,7 @@ import java.util.Date;
 
 @Data
 @NoArgsConstructor
-public class PhieuXuatNoDauKy {
+public class PhieuXuatNoDauKyRes {
     private String maNhaThuoc;
     private Long maKhachHang;
     private Date ngayXuat;
