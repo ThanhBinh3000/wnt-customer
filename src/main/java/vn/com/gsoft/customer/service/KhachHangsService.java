@@ -12,4 +12,5 @@ public interface KhachHangsService extends BaseService<KhachHangs, KhachHangsReq
     Page<ZaloOARes> searchPageFlowerOAByStoreCode(ZaloOAReq req) throws Exception;
     int updateMappingStore(MappingKhachHangReq req) throws Exception;
     int updateMappingZaloOA(MappingKhachHangReq req) throws Exception;
+    Integer updateThongTinKhuVuc(ThongTinKhuVucReq req) throws Exception;
 }

@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import vn.com.gsoft.customer.constant.PathContains;
 import vn.com.gsoft.customer.model.dto.KhachHangsReq;
 import vn.com.gsoft.customer.model.dto.MappingKhachHangReq;
+import vn.com.gsoft.customer.model.dto.ThongTinKhuVucReq;
 import vn.com.gsoft.customer.model.dto.ZaloOAReq;
 import vn.com.gsoft.customer.model.system.BaseResponse;
 import vn.com.gsoft.customer.service.KhachHangsService;
@@ -80,4 +81,10 @@ public class KhachHangsController {
   public ResponseEntity<BaseResponse> updateMappingZaloOa(@Valid @RequestBody MappingKhachHangReq objReq) throws Exception {
     return ResponseEntity.ok(ResponseUtils.ok(service.updateMappingZaloOA(objReq)));
   }
+  @PostMapping(value = PathContains.URL_UPDATE+ "-thong-tin-khu-vuc", produces = MediaType.APPLICATION_JSON_VALUE)
+  @ResponseStatus(HttpStatus.CREATED)
+  public ResponseEntity<BaseResponse> updateMappingZaloOa(@Valid @RequestBody ThongTinKhuVucReq objReq) throws Exception {
+    return ResponseEntity.ok(ResponseUtils.ok(service.updateThongTinKhuVuc(objReq)));
+  }
+
 }

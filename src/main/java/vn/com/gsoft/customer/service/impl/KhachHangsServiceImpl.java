@@ -77,8 +77,8 @@ public class KhachHangsServiceImpl extends BaseServiceImpl<KhachHangs, KhachHang
 		e = hdrRepo.save(e);
 		if (e.getNoDauKy() != null && e.getId() > 0){
 			if(e.getNoDauKy().compareTo(BigDecimal.valueOf(0)) > 0){
-              taoPhieuDauKy(storeCode, e.getId(), userInfo.getId(), e.getNoDauKy(),
-					  userInfo.getNhaThuoc().getId());
+              //taoPhieuDauKy(storeCode, e.getId(), userInfo.getId(), e.getNoDauKy(),
+					  //userInfo.getNhaThuoc().getId());
 			}
 		}
 		return e;
@@ -111,7 +111,7 @@ public class KhachHangsServiceImpl extends BaseServiceImpl<KhachHangs, KhachHang
 
 		e = hdrRepo.save(e);
 		if (e.getNoDauKy() != null){
-			taoPhieuDauKy(storeCode, e.getId(), userInfo.getId(), e.getNoDauKy(), userInfo.getNhaThuoc().getId());
+			//taoPhieuDauKy(storeCode, e.getId(), userInfo.getId(), e.getNoDauKy(), userInfo.getNhaThuoc().getId());
 		}
 		return e;
 	}
@@ -128,6 +128,9 @@ public class KhachHangsServiceImpl extends BaseServiceImpl<KhachHangs, KhachHang
 	}
 	@Override
 	public int updateMappingStore(MappingKhachHangReq req) throws Exception {
+		Profile userInfo = this.getLoggedUser();
+		if (userInfo == null)
+			throw new Exception("Bad request.");
 		if (req.getMaKhachHang() <= 0) return 0;
 		Optional<KhachHangs> optional = hdrRepo.findById(req.getMaKhachHang());
 		KhachHangs e = optional.get();
@@ -137,10 +140,27 @@ public class KhachHangsServiceImpl extends BaseServiceImpl<KhachHangs, KhachHang
 	}
 	@Override
 	public int updateMappingZaloOA(MappingKhachHangReq req) throws Exception {
+		Profile userInfo = this.getLoggedUser();
+		if (userInfo == null)
+			throw new Exception("Bad request.");
 		if (req.getMaKhachHang() <= 0) return 0;
 		Optional<KhachHangs> optional = hdrRepo.findById(req.getMaKhachHang());
 		KhachHangs e = optional.get();
 		e.setZaloId(req.getZaloId());
+		e = hdrRepo.save(e);
+		return 1;
+	}
+	@Override
+	public Integer updateThongTinKhuVuc(ThongTinKhuVucReq req) throws Exception {
+		Profile userInfo = this.getLoggedUser();
+		if (userInfo == null)
+			throw new Exception("Bad request.");
+		if(req.getId() < 0) return  0;
+		Optional<KhachHangs> optional = hdrRepo.findById(req.getId());
+		KhachHangs e = optional.get();
+		e.setWardId(req.getWardId());
+		e.setCityId(req.getCityId());
+		e.setRegionId(req.getRegionId());
 		e = hdrRepo.save(e);
 		return 1;
 	}

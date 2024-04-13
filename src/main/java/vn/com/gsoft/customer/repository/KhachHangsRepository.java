@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import vn.com.gsoft.customer.entity.KhachHangs;
 import vn.com.gsoft.customer.model.dto.KhachHangsReq;
 import vn.com.gsoft.customer.model.dto.PhieuXuatNoDauKyRes;
+import vn.com.gsoft.customer.model.dto.ThongTinKhuVucReq;
 import vn.com.gsoft.customer.model.dto.ZaloOAReq;
 
 import java.util.List;
@@ -124,7 +125,8 @@ public interface KhachHangsRepository extends BaseRepository<KhachHangs, KhachHa
   @Query(value = "SELECT c.id AS id, c.code AS code, c.tenKhachHang AS tenKhachHang,"
           + " c.soDienThoai AS soDienThoai, c.barcode AS barcode, n.tenNhomKhachHang AS tenNhomKhachHang,"
           + " c.MappingStoreId as mappingStoreId, c.zaloId AS zaloId, c.created AS created,"
-          + " c.birthDate AS birthDate"
+          + " c.birthDate AS birthDate, c.CityId AS cityId, c.WardId AS wardId, c.RegionId AS regionId,"
+          + " c.DiaChi AS diaChi"
           + " FROM KhachHangs c"
           + " JOIN NhomKhachHangs n ON c.maNhomKhachHang = n.id"
           + " WHERE 1=1"
