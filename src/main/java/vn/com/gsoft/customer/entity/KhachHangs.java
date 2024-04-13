@@ -22,7 +22,6 @@ public class KhachHangs extends BaseEntity {
     @Column(name = "id")
     @GeneratedValue(strategy=GenerationType.IDENTITY)
     private Long id;
-
     @Column(name = "TenKhachHang")
     private String tenKhachHang;
     @Column(name = "DiaChi")
