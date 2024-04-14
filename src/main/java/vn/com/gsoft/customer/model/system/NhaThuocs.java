@@ -112,5 +112,6 @@ public class NhaThuocs {
     private Integer evaluate;
     private Long supporterId;
     private Boolean upgradeToPlus;
+    private String role;
 }
 
