@@ -86,5 +86,9 @@ public class KhachHangsController {
   public ResponseEntity<BaseResponse> updateMappingZaloOa(@Valid @RequestBody ThongTinKhuVucReq objReq) throws Exception {
     return ResponseEntity.ok(ResponseUtils.ok(service.updateThongTinKhuVuc(objReq)));
   }
-
+  @PostMapping(value = PathContains.URL_RESTORE, produces = MediaType.APPLICATION_JSON_VALUE)
+  @ResponseStatus(HttpStatus.OK)
+  public ResponseEntity<BaseResponse> restore(@Valid @RequestBody KhachHangsReq idSearchReq) throws Exception {
+    return ResponseEntity.ok(ResponseUtils.ok(service.restore(idSearchReq.getId())));
+  }
 }

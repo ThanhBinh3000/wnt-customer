@@ -114,4 +114,18 @@ public class BaseServiceImpl<E extends BaseEntity,R extends BaseRequest, PK exte
         repository.save(optional.get());
         return true;
     }
+    @Override
+    public boolean restore(PK id) throws Exception {
+        Profile userInfo = this.getLoggedUser();
+        if (userInfo == null)
+            throw new Exception("Bad request.");
+
+        Optional<E> optional = repository.findById(id);
+        if (optional.isEmpty()) {
+            throw new Exception("Không tìm thấy dữ liệu.");
+        }
+        optional.get().setRecordStatusId(RecordStatusContains.ACTIVE);
+        repository.save(optional.get());
+        return true;
+    }
 }
