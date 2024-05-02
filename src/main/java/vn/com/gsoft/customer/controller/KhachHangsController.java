@@ -92,7 +92,7 @@ public class KhachHangsController {
     return ResponseEntity.ok(ResponseUtils.ok(service.restore(idSearchReq.getId())));
   }
 
-  @PostMapping(value = "get-payment-score", produces = MediaType.APPLICATION_JSON_VALUE)
+  @PostMapping(value = "/get-payment-score", produces = MediaType.APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.OK)
   public ResponseEntity<BaseResponse> getPaymentScore(@Valid @RequestBody KhachHangsReq idSearchReq) throws Exception {
     return ResponseEntity.ok(ResponseUtils.ok(service.getPaymentScore(idSearchReq.getId())));
