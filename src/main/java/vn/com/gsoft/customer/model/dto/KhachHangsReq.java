@@ -48,7 +48,7 @@ public class KhachHangsReq extends BaseRequest {
     private Integer preMetadataHash;
     private String nationalFacilityCode;
     private Integer mappingStoreId;
-    private BigDecimal totalScore;
+    private Double totalScore;
     private Integer sexId;
     private String nameContacter;
     private String phoneContacter;

@@ -77,7 +77,7 @@ public class KhachHangs extends BaseEntity {
     @Column(name = "MappingStoreId", columnDefinition = "integer default 0")
     private Integer mappingStoreId;
     @Column(name = "TotalScore" , columnDefinition = "decimal default 0")
-    private BigDecimal totalScore;
+    private Double totalScore;
     @Column(name = "SexId", columnDefinition = "integer default 0")
     private Integer sexId;
     @Column(name = "NameContacter")
