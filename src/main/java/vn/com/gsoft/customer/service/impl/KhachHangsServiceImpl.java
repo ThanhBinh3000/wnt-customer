@@ -186,13 +186,11 @@ public class KhachHangsServiceImpl extends BaseServiceImpl<KhachHangs, KhachHang
         List<Long> status = List.of(RecordStatusContains.ACTIVE, RecordStatusContains.ARCHIVED);
         List<CustomerBonusPayment> payments = customerBonusPaymentRepository.findByCustomerIdAndRecordStatusIdIn(id, status);
         Optional<KhachHangs> customer = khachHangsRepository.findById(id);
-
-        if (payments.isEmpty()) {
-            return 0d;
+        double paymentScore = 0d;
+        if (!payments.isEmpty()) {
+            paymentScore = payments.stream().mapToDouble(CustomerBonusPayment::getScore)
+                    .sum();
         }
-
-        double paymentScore = payments.stream().mapToDouble(CustomerBonusPayment::getScore)
-                .sum();
 
         if (customer.isEmpty()){
             return 0d;
