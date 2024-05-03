@@ -37,10 +37,11 @@ public class KhachHangsServiceImpl extends BaseServiceImpl<KhachHangs, KhachHang
     //endregion
     //region Interface Implementation
     @Autowired
-    public KhachHangsServiceImpl(KhachHangsRepository hdrRepo, CustomerBonusPaymentRepository customerBonusPaymentRepository) {
+    public KhachHangsServiceImpl(KhachHangsRepository hdrRepo,KhachHangsRepository khachHangsRepository, CustomerBonusPaymentRepository customerBonusPaymentRepository) {
         super(hdrRepo);
         this.hdrRepo = hdrRepo;
         this.customerBonusPaymentRepository = customerBonusPaymentRepository;
+        this.khachHangsRepository= khachHangsRepository;
     }
 
     @Override
