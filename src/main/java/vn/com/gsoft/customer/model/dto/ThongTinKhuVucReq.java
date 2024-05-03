@@ -9,4 +9,5 @@ public class ThongTinKhuVucReq extends BaseRequest {
     private Integer cityId;
     private Integer wardId;
     private Integer regionId;
+    private String diaChi;
 }
