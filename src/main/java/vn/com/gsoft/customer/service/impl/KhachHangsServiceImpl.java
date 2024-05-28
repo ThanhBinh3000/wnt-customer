@@ -8,13 +8,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import vn.com.gsoft.customer.constant.ENoteType;
 import vn.com.gsoft.customer.constant.RecordStatusContains;
 import vn.com.gsoft.customer.entity.CustomerBonusPayment;
 import vn.com.gsoft.customer.entity.KhachHangs;
+import vn.com.gsoft.customer.entity.NhomKhachHangs;
+import vn.com.gsoft.customer.entity.PhieuXuats;
 import vn.com.gsoft.customer.model.dto.*;
 import vn.com.gsoft.customer.model.system.Profile;
-import vn.com.gsoft.customer.repository.CustomerBonusPaymentRepository;
-import vn.com.gsoft.customer.repository.KhachHangsRepository;
+import vn.com.gsoft.customer.repository.*;
 import vn.com.gsoft.customer.service.KhachHangsService;
 import vn.com.gsoft.customer.util.system.DataUtils;
 
@@ -33,19 +35,33 @@ public class KhachHangsServiceImpl extends BaseServiceImpl<KhachHangs, KhachHang
     private KhachHangsRepository hdrRepo;
     private KhachHangsRepository khachHangsRepository;
     private CustomerBonusPaymentRepository customerBonusPaymentRepository;
+    private NhaThuocsRepository nhaThuocsRepository;
+    private FollowerZaloOARepository followerZaloOARepository;
+    private NhomKhachHangsRepository nhomKhachHangsRepository;
+    private PhieuXuatsRepository phieuXuatsRepository;
 
     //endregion
     //region Interface Implementation
     @Autowired
-    public KhachHangsServiceImpl(KhachHangsRepository hdrRepo,KhachHangsRepository khachHangsRepository, CustomerBonusPaymentRepository customerBonusPaymentRepository) {
+    public KhachHangsServiceImpl(KhachHangsRepository hdrRepo,
+                                 KhachHangsRepository khachHangsRepository,
+                                 CustomerBonusPaymentRepository customerBonusPaymentRepository,
+                                 NhaThuocsRepository nhaThuocsRepository,
+                                 FollowerZaloOARepository followerZaloOARepository,
+                                 NhomKhachHangsRepository nhomKhachHangsRepository,
+                                 PhieuXuatsRepository phieuXuatsRepository) {
         super(hdrRepo);
         this.hdrRepo = hdrRepo;
         this.customerBonusPaymentRepository = customerBonusPaymentRepository;
         this.khachHangsRepository= khachHangsRepository;
+        this.nhaThuocsRepository = nhaThuocsRepository;
+        this.followerZaloOARepository = followerZaloOARepository;
+        this.nhomKhachHangsRepository = nhomKhachHangsRepository;
+        this.phieuXuatsRepository = phieuXuatsRepository;
     }
 
     @Override
-    public Page<KhachHangsRes> searchCustomerManagementPage(KhachHangsReq req) throws Exception {
+    public Page<KhachHangs> searchPage(KhachHangsReq req) throws Exception {
         Profile userInfo = this.getLoggedUser();
         if (userInfo == null)
             throw new Exception("Bad request.");
@@ -54,7 +70,20 @@ public class KhachHangsServiceImpl extends BaseServiceImpl<KhachHangs, KhachHang
         req.setMaNhaThuoc(storeCode);
         req.setRecordStatusId(req.getDataDelete() ? RecordStatusContains.DELETED : RecordStatusContains.ACTIVE);
         Pageable pageable = PageRequest.of(req.getPaggingReq().getPage(), req.getPaggingReq().getLimit());
-        return DataUtils.convertPage(hdrRepo.searchCustomerManagementPage(req, pageable), KhachHangsRes.class);
+        Page<KhachHangs> khachHangs= hdrRepo.searchPage(req,pageable);
+        for (KhachHangs kh: khachHangs.getContent()){
+            if(kh.getMappingStoreId() != null && kh.getMappingStoreId() > 0){
+               kh.setNhaThuoc(this.nhaThuocsRepository.findByIdAndHoatDong(Long.valueOf(kh.getMappingStoreId()), true));
+            }
+            if(kh.getZaloId()!= null && !kh.getZaloId().isEmpty()){
+                kh.setFollowerZaloOA(this.followerZaloOARepository.findByUserId(kh.getZaloId()));
+            }
+            if(kh.getMaNhomKhachHang() != null && kh.getMaNhomKhachHang() > 0){
+                Optional<NhomKhachHangs> byId = nhomKhachHangsRepository.findById(kh.getMaNhomKhachHang());
+                byId.ifPresent(kh::setNhomKhachHangs);
+            }
+        }
+        return khachHangs;
     }
 
     @Override
@@ -87,8 +116,7 @@ public class KhachHangsServiceImpl extends BaseServiceImpl<KhachHangs, KhachHang
         e = hdrRepo.save(e);
         if (e.getNoDauKy() != null && e.getId() > 0) {
             if (e.getNoDauKy().compareTo(BigDecimal.valueOf(0)) > 0) {
-                //taoPhieuDauKy(storeCode, e.getId(), userInfo.getId(), e.getNoDauKy(),
-                //userInfo.getNhaThuoc().getId());
+                taoPhieuDauKy(storeCode, e.getId(), userInfo.getId(), e.getNoDauKy().doubleValue(), userInfo.getNhaThuoc().getId());
             }
         }
         return e;
@@ -122,7 +150,7 @@ public class KhachHangsServiceImpl extends BaseServiceImpl<KhachHangs, KhachHang
 
         e = hdrRepo.save(e);
         if (e.getNoDauKy() != null) {
-            //taoPhieuDauKy(storeCode, e.getId(), userInfo.getId(), e.getNoDauKy(), userInfo.getNhaThuoc().getId());
+            taoPhieuDauKy(storeCode, e.getId(), userInfo.getId(), e.getNoDauKy().doubleValue(), userInfo.getNhaThuoc().getId());
         }
         return e;
     }
@@ -204,33 +232,41 @@ public class KhachHangsServiceImpl extends BaseServiceImpl<KhachHangs, KhachHang
     //endregion
     //region Private Methods
     private void taoPhieuDauKy(String storeCode, Long maKhachHang,
-                               Long userId, BigDecimal tongTien, Long storeId) throws Exception {
-        var phieuXuatNoDauKy = new PhieuXuatNoDauKyRes();
-        List<PhieuXuatNoDauKyRes> phieuXuatNoDauKys = this.hdrRepo.findPhieuXuatNoDauKyById(storeCode, maKhachHang);
-        Long recordStatusId = 0L;
-        if (!phieuXuatNoDauKys.isEmpty()) {
-            recordStatusId = tongTien.compareTo(BigDecimal.valueOf(0)) == 0
-                    ? RecordStatusContains.DELETED : RecordStatusContains.ACTIVE;
-            phieuXuatNoDauKy.setModified(Date.from(Instant.now()));
-            phieuXuatNoDauKy.setModifiedByUserId(userId);
-            phieuXuatNoDauKy.setRecordStatusId(recordStatusId);
-            phieuXuatNoDauKy.setTongTien(tongTien);
-            phieuXuatNoDauKy.setId(phieuXuatNoDauKys.get(0).getId());
-            hdrRepo.updatePhieuXuatNoDauKy(phieuXuatNoDauKy);
-        } else {
-            phieuXuatNoDauKy.setNgayXuat(Date.from(Instant.now()));
-            phieuXuatNoDauKy.setCreated(Date.from(Instant.now()));
-            phieuXuatNoDauKy.setMaLoaiXuatNhap(7L);
-            phieuXuatNoDauKy.setMaKhachHang(maKhachHang);
-            phieuXuatNoDauKy.setCreatedByUserId(userId);
-            phieuXuatNoDauKy.setIsDebt(true);
-            phieuXuatNoDauKy.setStoreId(storeId);
-            phieuXuatNoDauKy.setMaNhaThuoc(storeCode);
-            phieuXuatNoDauKy.setTongTien(tongTien);
-            phieuXuatNoDauKy.setRecordStatusId(RecordStatusContains.ACTIVE);
-
-            this.hdrRepo.insertPhieuXuatNoDauKy(phieuXuatNoDauKy);
+                               Long userId, Double tongTien, Long storeId) throws Exception {
+        //kiểm tra xem tồn tại phiếu chưa
+         PhieuXuats phieuXuat = this.phieuXuatsRepository.findByNhaThuocMaNhaThuocAndKhachHangMaKhachHangAndMaLoaiXuatNhapAndRecordStatusId(
+                 storeCode,
+                 maKhachHang,
+                 ENoteType.InitialSupplierDebt,
+                 (int) RecordStatusContains.ACTIVE);
+        if(phieuXuat != null && phieuXuat.getId() != null && phieuXuat.getId() > 0){
+           phieuXuat.setRecordStatusId(tongTien > 0 ? RecordStatusContains.ACTIVE : RecordStatusContains.DELETED_FOREVER);
+           phieuXuat.setTongTien(tongTien);
+           phieuXuat.setIsDebt(tongTien > 0);
+        }else {
+            phieuXuat = new PhieuXuats();
+            phieuXuat.setKhachHangMaKhachHang(maKhachHang);
+            phieuXuat.setSoPhieuXuat(0L);
+            phieuXuat.setRecordStatusId(RecordStatusContains.ACTIVE);
+            phieuXuat.setCreated(new Date());
+            phieuXuat.setCreatedByUserId(userId);
+            phieuXuat.setTongTien(tongTien);
+            phieuXuat.setIsDebt(true);
+            phieuXuat.setMaLoaiXuatNhap(ENoteType.InitialSupplierDebt.longValue());
+            phieuXuat.setNhaThuocMaNhaThuoc(storeCode);
+            phieuXuat.setStoreId(storeId);
+            phieuXuat.setTargetId(null);
+            phieuXuat.setTargetStoreId(null);
+            phieuXuat.setTargetManagementId(null);
+            phieuXuat.setIsModified(false);
+            phieuXuat.setBackPaymentAmount(new BigDecimal(0l));
+            phieuXuat.setConnectivityStatusID(0l);
+            phieuXuat.setDaTra(0d);
+            phieuXuat.setDiscount(0d);
+            phieuXuat.setPaymentScore(new BigDecimal(0l));
+            phieuXuat.setVat(0);
         }
+        phieuXuatsRepository.save(phieuXuat);
     }
     //endregion
 

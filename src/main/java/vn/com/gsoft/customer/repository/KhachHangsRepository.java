@@ -28,7 +28,7 @@ public interface KhachHangsRepository extends BaseRepository<KhachHangs, KhachHa
           + " AND (:#{#param.donViCongTac} IS NULL OR lower(c.donViCongTac) LIKE lower(concat('%',CONCAT(:#{#param.donViCongTac},'%'))))"
           + " AND (:#{#param.email} IS NULL OR lower(c.email) LIKE lower(concat('%',CONCAT(:#{#param.email},'%'))))"
           + " AND (:#{#param.ghiChu} IS NULL OR lower(c.ghiChu) LIKE lower(concat('%',CONCAT(:#{#param.ghiChu},'%'))))"
-          + " AND (:#{#param.maNhaThuoc} IS NULL OR lower(c.maNhaThuoc) LIKE lower(concat('%',CONCAT(:#{#param.maNhaThuoc},'%'))))"
+          + " AND (:#{#param.maNhaThuoc} IS NULL OR c.maNhaThuoc = :#{#param.maNhaThuoc})"
           + " AND (:#{#param.maNhomKhachHang} IS NULL OR c.maNhomKhachHang = :#{#param.maNhomKhachHang}) "
 //          + " AND (:#{#param.created} IS NULL OR c.created >= :#{#param.createdFrom}) "
 //          + " AND (:#{#param.created} IS NULL OR c.created <= :#{#param.createdTo}) "
@@ -170,46 +170,10 @@ public interface KhachHangsRepository extends BaseRepository<KhachHangs, KhachHa
   @Query(value = "SELECT * FROM KhachHangs c WHERE c.code = :code AND c.maNhaThuoc = :storeCode" +
           " AND (:id IS NULL OR id != :id)", nativeQuery = true)
   List<KhachHangs> findCustomerByCode( @Param("code") String code,@Param("storeCode") String storeCode, @Param("id") Long id);
-  //Thêm mới phiếu xuất nợ đầu kỳ
-  @Modifying
-  @Query( value = "INSERT INTO PhieuXuats " +
-                  "(NhaThuoc_MaNhaThuoc, KhachHang_MaKhachHang, NgayXuat, Created, CreatedBy_UserId, RecordStatusID, IsDebt, TongTien, MaLoaiXuatNhap, StoreId) " +
-                  "VALUES (:#{#param.maNhaThuoc}, " +
-                  ":#{#param.maKhachHang}, " +
-                  ":#{#param.ngayXuat}, " +
-                  ":#{#param.created}, " +
-                  ":#{#param.createdByUserId}, " +
-                  ":#{#param.recordStatusId}, " +
-                  ":#{#param.isDebt}, " +
-                  ":#{#param.tongTien}, " +
-                  ":#{#param.maLoaiXuatNhap}, " +
-                  ":#{#param.storeId})",
-          nativeQuery = true)
-  void insertPhieuXuatNoDauKy(@Param("param") PhieuXuatNoDauKyRes param);
-  //cập nhật phiếu xuất nợ đầu kỳ
-  @Modifying
-  @Query( value = "UPDATE PhieuXuats SET" +
-          "IsDebt = :#{#param.isDebt}, " +
-          "TongTien = :#{#param.tongTien}, " +
-          "Modified = :#{#param.modified}, " +
-          "ModifiedBy_UserId = :#{#param.modifiedByUserId}, " +
-          "RecordStatusID = :#{#param.recordStatusId} " +
-          "WHERE NhaThuoc_MaNhaThuoc = :#{#param.maNhaThuoc} AND KhachHang_MaKhachHang = :#{#param.maKhachHang} AND MaLoaiXuatNhap = 7",
-          nativeQuery = true)
-  void updatePhieuXuatNoDauKy(@Param("param") PhieuXuatNoDauKyRes param);
-  //kiểm tra đã tồn tại phiếu đầu kỳ chưa
-  @Query(value = "SELECT c.NhaThuoc_MaNhaThuoc AS maNhaThuoc, c.KhachHang_MaKhachHang AS maKhachHang," +
-          " c.NgayXuat AS ngayXuat, c.Created AS Created, c.CreatedBy_UserId AS createdByUserId," +
-          " c.RecordStatusID AS recordStatusID, c.IsDebt AS isDebt, c.TongTien AS tongTien," +
-          " c.MaLoaiXuatNhap AS maLoaiXuatNhap, c.Id AS id, c.StoreId AS storeId, c.ModifiedBy_UserId AS modifiedByUserId," +
-          " c.Modified AS modified" +
-          " FROM PhieuXuats c WHERE c.NhaThuoc_MaNhaThuoc = :storeCode AND c.KhachHang_MaKhachHang = :maKhachHang" +
-          " AND MaLoaiXuatNhap = 7",
-          nativeQuery = true)
-  List<PhieuXuatNoDauKyRes> findPhieuXuatNoDauKyById(@Param("storeCode") String storeCode, @Param("maKhachHang") Long maKhachHang);
   //danh sách người quan tâm oa theo mã nhà thuốc
   @Query(value = "SELECT c.Id  id, c.UserName AS userName, c.UserId AS userId, c.DrugStoreCode AS drugStoreCode, c.Avatar AS avatar" +
-          " FROM FollowerZaloOA c WHERE DrugStoreCode = :#{#param.maNhaThuoc}"
+          " FROM FollowerZaloOA c WHERE DrugStoreCode = :#{#param.maNhaThuoc}" +
+          " AND (:#{#param.userName} iS NULL OR lower(c.UserName) LIKE lower(concat('%',CONCAT(:#{#param.userName},'%')))) "
           , nativeQuery = true)
   Page<Tuple> searchPageFlowerOAByStoreCode(@Param("param") ZaloOAReq rep, Pageable pageable);
 }
