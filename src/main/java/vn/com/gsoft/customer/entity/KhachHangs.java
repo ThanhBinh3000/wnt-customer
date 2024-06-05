@@ -108,6 +108,11 @@ public class KhachHangs extends BaseEntity {
     private FollowerZaloOA followerZaloOA;
     @Transient
     private NhomKhachHangs nhomKhachHangs;
+    @Transient
+    private String sexText;
 
+    public String getSexText() {
+        return sexId == 1 ? "Nữ" : "Nam";
+    }
 }
 
