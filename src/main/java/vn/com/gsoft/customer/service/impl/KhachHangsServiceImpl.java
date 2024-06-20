@@ -1,31 +1,47 @@
 package vn.com.gsoft.customer.service.impl;
 
 
+import com.google.gson.Gson;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.lang.math.NumberUtils;
+import org.apache.kafka.common.protocol.types.Field;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import vn.com.gsoft.customer.constant.ENoteType;
+import vn.com.gsoft.customer.constant.ImportConstant;
 import vn.com.gsoft.customer.constant.RecordStatusContains;
 import vn.com.gsoft.customer.entity.CustomerBonusPayment;
 import vn.com.gsoft.customer.entity.KhachHangs;
 import vn.com.gsoft.customer.entity.NhomKhachHangs;
 import vn.com.gsoft.customer.entity.PhieuXuats;
 import vn.com.gsoft.customer.model.dto.*;
+import vn.com.gsoft.customer.model.system.PaggingReq;
 import vn.com.gsoft.customer.model.system.Profile;
+import vn.com.gsoft.customer.model.system.WrapData;
 import vn.com.gsoft.customer.repository.*;
+import vn.com.gsoft.customer.service.KafkaProducer;
 import vn.com.gsoft.customer.service.KhachHangsService;
 import vn.com.gsoft.customer.util.system.DataUtils;
+import vn.com.gsoft.customer.util.system.ExportExcel;
 
+import java.io.InputStream;
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.time.LocalDate;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
+import java.util.function.Supplier;
 
 
 @Service
@@ -39,6 +55,12 @@ public class KhachHangsServiceImpl extends BaseServiceImpl<KhachHangs, KhachHang
     private FollowerZaloOARepository followerZaloOARepository;
     private NhomKhachHangsRepository nhomKhachHangsRepository;
     private PhieuXuatsRepository phieuXuatsRepository;
+
+    @Autowired
+    private KafkaProducer kafkaProducer;
+
+    @Value("${wnt.kafka.internal.consumer.topic.import-master}")
+    private String topicName;
 
     //endregion
     //region Interface Implementation
@@ -229,6 +251,129 @@ public class KhachHangsServiceImpl extends BaseServiceImpl<KhachHangs, KhachHang
         return total - paymentScore;
     }
 
+    //export
+    @Override
+    public void export(KhachHangsReq req, HttpServletResponse response) throws Exception{
+        PaggingReq paggingReq = new PaggingReq();
+        paggingReq.setPage(0);
+        paggingReq.setLimit(Integer.MAX_VALUE);
+        req.setPaggingReq(paggingReq);
+        Page<KhachHangs> page = this.searchPage(req);
+        List<KhachHangs> data = page.getContent();
+
+        String title = "Khách hàng";
+        String fileName = "danh_sach_khach_hang.xlsx";
+        String[] rowsName = new String[]{
+                "Id",
+                "Mã khách hàng",
+                "Nhóm khách hàng",
+                "Tên khách hàng",
+                "Loại khách hàng",
+                "Mã số thuế",
+                "Địa chỉ",
+                "Số điện thoại",
+                "Mã vạch",
+                "Nợ đầu kỳ",
+                "Đơn vị công tác",
+                "Email",
+                "Ghi chú",
+                "Ngày sinh"
+        };
+
+        List<Object[]> dataList = convertToExcelModel(data, rowsName, false);
+
+        ExportExcel exportExcel = new ExportExcel(title, fileName, rowsName, dataList, response);
+        exportExcel.export();
+
+    }
+    //import
+    @Override
+    public boolean importExcel(MultipartFile file) throws Exception {
+        Profile userInfo = this.getLoggedUser();
+        if (userInfo == null)
+            throw new Exception("Bad request.");
+        Supplier<KhachHangs> khachHangSupplier = KhachHangs::new;
+        BaseServiceImpl<KhachHangs, KhachHangsReq,Long> service = new BaseServiceImpl<>(khachHangSupplier);
+        InputStream inputStream = file.getInputStream();
+        try (Workbook workbook = new XSSFWorkbook(inputStream)) {
+            List<String> propertyNames = Arrays.asList("idText",
+                    "code",
+                    "tenNhomKhachHang",
+                    "tenKhachHang",
+                    "loaiKhachHang",
+                    "taxCode",
+                    "diaChi",
+                    "soDienThoai",
+                    "barCode",
+                    "noDauKyText",
+                    "donViCongTac",
+                    "email",
+                    "ghiChu",
+                    "birthDateText");
+            List<KhachHangs> khachHangs = new ArrayList<>(service.handleImportExcel(workbook, propertyNames));
+            List<KhachHangs> khachHangsDone = new ArrayList<KhachHangs>();
+            List<KhachHangs> khachHangsError = new ArrayList<KhachHangs>();
+            for (int i = 1; i< khachHangs.size(); i ++){
+                var khachHang = khachHangs.get(i);
+                var msg = validateKhachHang(khachHang);
+                if(!msg.isEmpty()){
+                    khachHang.setResult(msg);
+                    khachHangsError.add(khachHang);
+                }else {
+                    khachHang.setMaNhaThuoc(userInfo.getNhaThuoc().getMaNhaThuoc());
+                    khachHang.setRecordStatusId(RecordStatusContains.ACTIVE);
+                    khachHang.setCusType(khachHang.getLoaiKhachHang().equals("Tổ chức"));
+                    if(!khachHang.getNoDauKyText().trim().isEmpty()){
+                        khachHang.setNoDauKyText(khachHang.getNoDauKyText().replace(".00", ""));
+                        khachHang.setNoDauKy(BigDecimal.valueOf(Integer.parseInt(khachHang.getNoDauKyText())));
+                    }
+                    if(!khachHang.getIdText().trim().isEmpty()){
+                        khachHang.setId(Long.valueOf(khachHang.getIdText()));
+                    }
+                    if(!khachHang.getBirthDateText().trim().isEmpty())
+                    {
+                        khachHang.setBirthDate(new SimpleDateFormat("dd/MM/yyyy").parse(khachHang.getBirthDateText()));
+                    }
+                    khachHangsDone.add(khachHang);
+                }
+            }
+            if(!khachHangsDone.isEmpty()){
+                pushToKafka(khachHangsDone, userInfo);
+            }
+
+            if(!khachHangsError.isEmpty()){
+                String title = "Khách hàng";
+                String fileName = "danh_sach_khach_hang_loi.xlsx";
+                String[] rowsName = new String[]{
+                        "Id",
+                        "Mã khách hàng",
+                        "Nhóm khách hàng",
+                        "Tên khách hàng",
+                        "Loại khách hàng",
+                        "Mã số thuế",
+                        "Địa chỉ",
+                        "Số điện thoại",
+                        "Mã vạch",
+                        "Nợ đầu kỳ",
+                        "Đơn vị công tác",
+                        "Email",
+                        "Ghi chú",
+                        "Ngày sinh",
+                        "Result"
+                };
+
+                //List<Object[]> dataList = convertToExcelModel(khachHangsError, rowsName, true);
+
+                //ExportExcel exportExcel = new ExportExcel(title, fileName, rowsName, dataList, response);
+                //exportExcel.export();
+            }
+            return true;
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     //endregion
     //region Private Methods
     private void taoPhieuDauKy(String storeCode, Long maKhachHang,
@@ -259,16 +404,102 @@ public class KhachHangsServiceImpl extends BaseServiceImpl<KhachHangs, KhachHang
             phieuXuat.setTargetStoreId(null);
             phieuXuat.setTargetManagementId(null);
             phieuXuat.setIsModified(false);
-            phieuXuat.setBackPaymentAmount(new BigDecimal(0l));
-            phieuXuat.setConnectivityStatusID(0l);
+            phieuXuat.setBackPaymentAmount(new BigDecimal(0L));
+            phieuXuat.setConnectivityStatusID(0L);
             phieuXuat.setDaTra(0d);
             phieuXuat.setDiscount(0d);
-            phieuXuat.setPaymentScore(new BigDecimal(0l));
+            phieuXuat.setPaymentScore(new BigDecimal(0L));
             phieuXuat.setVat(0);
         }
         phieuXuatsRepository.save(phieuXuat);
     }
-    //endregion
 
+    private String validateKhachHang(KhachHangs khachHang){
+        var msg = "";
+        if(khachHang.getTenKhachHang().trim().isEmpty()){
+            msg = "Tên khách hàng không được để trống";
+        }
+        if(khachHang.getTenNhomKhachHang().trim().isEmpty()){
+            msg = msg + " ,Tên nhóm khách hàng không được để trống";
+        }
+        if(khachHang.getNoDauKyText() != null && !NumberUtils.isNumber(khachHang.getNoDauKyText())){
+            msg = msg + ", Nợ đầu kỳ phải là số";
+        }
+        return  msg;
+    }
+
+    private List<Object[]> convertToExcelModel(List<KhachHangs> data, String[] rowsName, boolean duLieuLoi){
+        List<Object[]> dataList = new ArrayList<Object[]>();
+        Object[] objects = null;
+
+        objects = new Object[rowsName.length];
+        objects[0] = "Id";
+        objects[1] = "Code";
+        objects[2] ="TenNhomKhachHang";
+        objects[3] = "TenKhachHang";
+        objects[4] = "LoaiKhachHang";
+        objects[5] = "TaxCode";
+        objects[6] = "DiaChi";
+        objects[7] = "SoDienThoai";
+        objects[8] = "BarCode";
+        objects[9] = "NoDauKy";
+        objects[10] = "DonViCongTac";
+        objects[11] = "Email";
+        objects[12]= "GhiChu";
+        objects[13]= "BirthDate";
+        if(duLieuLoi){
+            objects[14]= "Result";
+        }
+        dataList.add(objects);
+
+        String pattern = "dd/MM/yyyy";
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
+
+        for (int i = 0; i< data.size(); i ++){
+            KhachHangs khachHang = data.get(i);
+            objects = new Object[rowsName.length];
+            objects[0] = khachHang.getId();
+            objects[1] = khachHang.getCode();
+            objects[2] = khachHang.getNhomKhachHangs() != null ? khachHang.getNhomKhachHangs().getTenNhomKhachHang() : "";
+            objects[3] = khachHang.getTenKhachHang();
+            objects[4] = khachHang.getCusType() != null && khachHang.getCusType() ? "Tổ chức" : "Cá nhân";
+            objects[5] = khachHang.getTaxCode();
+            objects[6] = khachHang.getDiaChi();
+            objects[7] = khachHang.getSoDienThoai();
+            objects[8] = khachHang.getBarCode();
+            objects[9] = khachHang.getNoDauKy();
+            objects[10] = khachHang.getDonViCongTac();
+            objects[11] = khachHang.getEmail();
+            objects[12] = khachHang.getGhiChu();
+            objects[13] = khachHang.getBirthDate() != null
+                    ? simpleDateFormat.format(khachHang.getBirthDate()) : null;
+            if(duLieuLoi){
+                objects[14] = khachHang.getResult();
+            }
+            dataList.add(objects);
+        }
+        return dataList;
+    }
+
+    //thêm kafka
+    private void pushToKafka(List<KhachHangs> khachHangs, Profile profile) throws ExecutionException, InterruptedException, TimeoutException {
+        int size = khachHangs.size();
+        int index = 1;
+        UUID uuid = UUID.randomUUID();
+        String bathKey = uuid.toString();
+        for(KhachHangs kh :khachHangs){
+            String key = kh.getMaNhaThuoc();
+            WrapData data = new WrapData();
+            data.setBathKey(bathKey);
+            data.setCode(ImportConstant.KHACH_HANG);
+            data.setSendDate(new Date());
+            data.setData(kh);
+            data.setTotal(size);
+            data.setIndex(index++);
+            data.setProfile(profile);
+            kafkaProducer.sendInternal(topicName, key, new Gson().toJson(data));
+        }
+    }
+    //endregion
 }
 

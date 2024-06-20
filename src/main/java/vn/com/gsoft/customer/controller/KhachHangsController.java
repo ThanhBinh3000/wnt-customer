@@ -1,6 +1,8 @@
 package vn.com.gsoft.customer.controller;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import vn.com.gsoft.customer.constant.PathContains;
 import vn.com.gsoft.customer.model.dto.KhachHangsReq;
 import vn.com.gsoft.customer.model.dto.MappingKhachHangReq;
@@ -16,6 +19,9 @@ import vn.com.gsoft.customer.model.dto.ZaloOAReq;
 import vn.com.gsoft.customer.model.system.BaseResponse;
 import vn.com.gsoft.customer.service.KhachHangsService;
 import vn.com.gsoft.customer.util.system.ResponseUtils;
+
+import java.util.HashMap;
+import java.util.Map;
 
 
 @Slf4j
@@ -97,4 +103,28 @@ public class KhachHangsController {
   public ResponseEntity<BaseResponse> getPaymentScore(@Valid @RequestBody KhachHangsReq idSearchReq) throws Exception {
     return ResponseEntity.ok(ResponseUtils.ok(service.getPaymentScore(idSearchReq.getId())));
   }
+
+  @PostMapping(value = "/export", produces = MediaType.APPLICATION_JSON_VALUE)
+  @ResponseStatus(HttpStatus.OK)
+  public void exportList(@RequestBody KhachHangsReq objReq, HttpServletResponse response) throws Exception {
+    try {
+      service.export(objReq, response);
+    } catch (Exception e) {
+      log.error("Kết xuất danh sách dánh  : {}", e);
+      final Map<String, Object> body = new HashMap<>();
+      body.put("statusCode", HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+      body.put("msg", e.getMessage());
+      response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+      response.setCharacterEncoding("UTF-8");
+      final ObjectMapper mapper = new ObjectMapper();
+      mapper.writeValue(response.getOutputStream(), body);
+    }
+  }
+
+  @PostMapping(value = "/import", produces = MediaType.APPLICATION_JSON_VALUE)
+  @ResponseStatus(HttpStatus.OK)
+  public ResponseEntity<BaseResponse> importExcel(@RequestParam("file") MultipartFile file) throws Exception {
+    return ResponseEntity.ok(ResponseUtils.ok(service.importExcel(file)));
+  }
+
 }
