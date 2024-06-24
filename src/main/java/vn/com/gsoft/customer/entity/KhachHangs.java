@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.kafka.common.protocol.types.Field;
 import vn.com.gsoft.customer.model.system.BaseRequest;
 
 import java.math.BigDecimal;
@@ -110,9 +111,21 @@ public class KhachHangs extends BaseEntity {
     private NhomKhachHangs nhomKhachHangs;
     @Transient
     private String sexText;
+    @Transient
+    private String idText;
+    @Transient
+    private String noDauKyText;
+    @Transient
+    private String loaiKhachHang;
+    @Transient
+    private String birthDateText;
+    @Transient
+    private String tenNhomKhachHang;
+    @Transient
+    private String result;
 
     public String getSexText() {
-        return sexId == 1 ? "Nữ" : "Nam";
+        return sexId!= null && sexId == 1 ? "Nữ" : "Nam";
     }
 }
 
