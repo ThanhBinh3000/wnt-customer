@@ -23,6 +23,7 @@ import vn.com.gsoft.customer.entity.CustomerBonusPayment;
 import vn.com.gsoft.customer.entity.KhachHangs;
 import vn.com.gsoft.customer.entity.NhomKhachHangs;
 import vn.com.gsoft.customer.entity.PhieuXuats;
+import vn.com.gsoft.customer.entity.Process;
 import vn.com.gsoft.customer.model.dto.*;
 import vn.com.gsoft.customer.model.system.PaggingReq;
 import vn.com.gsoft.customer.model.system.Profile;
@@ -288,7 +289,7 @@ public class KhachHangsServiceImpl extends BaseServiceImpl<KhachHangs, KhachHang
     }
     //import
     @Override
-    public boolean importExcel(MultipartFile file) throws Exception {
+    public Process importExcel(MultipartFile file) throws Exception {
         Profile userInfo = this.getLoggedUser();
         if (userInfo == null)
             throw new Exception("Bad request.");
@@ -310,7 +311,7 @@ public class KhachHangsServiceImpl extends BaseServiceImpl<KhachHangs, KhachHang
                     "email",
                     "ghiChu",
                     "birthDateText");
-            List<KhachHangs> khachHangs = new ArrayList<>(service.handleImportExcel(workbook, propertyNames));
+            List<KhachHangs> khachHangs = new ArrayList<>(handleImportExcel(workbook, propertyNames,khachHangSupplier));
             List<KhachHangs> khachHangsDone = new ArrayList<KhachHangs>();
             List<KhachHangs> khachHangsError = new ArrayList<KhachHangs>();
             for (int i = 1; i< khachHangs.size(); i ++){
@@ -337,9 +338,9 @@ public class KhachHangsServiceImpl extends BaseServiceImpl<KhachHangs, KhachHang
                     khachHangsDone.add(khachHang);
                 }
             }
-            if(!khachHangsDone.isEmpty()){
-                pushToKafka(khachHangsDone, userInfo);
-            }
+//            if(!khachHangsDone.isEmpty()){
+//                pushToKafka(khachHangsDone, userInfo);
+//            }
 
             if(!khachHangsError.isEmpty()){
                 String title = "Khách hàng";
@@ -367,11 +368,12 @@ public class KhachHangsServiceImpl extends BaseServiceImpl<KhachHangs, KhachHang
                 //ExportExcel exportExcel = new ExportExcel(title, fileName, rowsName, dataList, response);
                 //exportExcel.export();
             }
-            return true;
+            return pushToKafka(khachHangsDone, userInfo);
         }catch (Exception e) {
+            log.error(e.getMessage());
             e.printStackTrace();
         }
-        return false;
+        return null;
     }
 
     //endregion
@@ -482,11 +484,13 @@ public class KhachHangsServiceImpl extends BaseServiceImpl<KhachHangs, KhachHang
     }
 
     //thêm kafka
-    private void pushToKafka(List<KhachHangs> khachHangs, Profile profile) throws ExecutionException, InterruptedException, TimeoutException {
+    private Process pushToKafka(List<KhachHangs> khachHangs, Profile profile) throws Exception {
         int size = khachHangs.size();
         int index = 1;
         UUID uuid = UUID.randomUUID();
         String bathKey = uuid.toString();
+        Profile userInfo = this.getLoggedUser();
+        Process process = kafkaProducer.createProcess(bathKey, userInfo.getNhaThuoc().getMaNhaThuoc(), new Gson().toJson(khachHangs), new Date(),size, userInfo.getId());
         for(KhachHangs kh :khachHangs){
             String key = kh.getMaNhaThuoc();
             WrapData data = new WrapData();
@@ -497,8 +501,10 @@ public class KhachHangsServiceImpl extends BaseServiceImpl<KhachHangs, KhachHang
             data.setTotal(size);
             data.setIndex(index++);
             data.setProfile(profile);
+            kafkaProducer.createProcessDtl(process, data);
             kafkaProducer.sendInternal(topicName, key, new Gson().toJson(data));
         }
+        return process;
     }
     //endregion
 }
