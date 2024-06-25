@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 import vn.com.gsoft.customer.entity.KhachHangs;
+import vn.com.gsoft.customer.entity.Process;
 import vn.com.gsoft.customer.model.dto.*;
 
 import java.util.List;
@@ -17,5 +18,6 @@ public interface KhachHangsService extends BaseService<KhachHangs, KhachHangsReq
 
     Double getPaymentScore(Long id);
     void export(KhachHangsReq req, HttpServletResponse response) throws  Exception;
-    boolean importExcel(MultipartFile file) throws Exception;
+    Process importExcel(MultipartFile file) throws Exception;
+
 }
